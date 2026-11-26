@@ -1,0 +1,2071 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>약술형 논술 일정·정보 자동화 트래커 (2027·2028학년도)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .timeline-line {
+      background: linear-gradient(180deg, #6366f1 0%, #cbd5e1 100%);
+    }
+    .tab-active {
+      color: #4f46e5;
+      border-bottom: 2px solid #4f46e5;
+      font-weight: 700;
+    }
+    .filter-active {
+      background-color: #4f46e5;
+      color: #ffffff;
+      border-color: #4f46e5;
+    }
+    .code-block {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+
+  <!-- Top Notice Ticker Bar -->
+  <div id="top-notice-bar" class="bg-indigo-950 text-indigo-50 text-xs sm:text-sm py-2 px-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-400 text-slate-950">공지</span>
+        <button id="ticker-notice-btn" type="button" class="truncate text-left hover:underline font-medium">
+          [2028 신규 합류] 인하대·가톨릭대·한성대 3개교 약술형 논술 도입 확정·예고 — 총 16개교로 확대!
+        </button>
+      </div>
+      <div class="shrink-0 flex items-center gap-2">
+        <span id="last-sync-label" class="hidden md:inline text-indigo-300 text-xs">최종 동기화: 2026.11.26</span>
+        <button id="open-notices-from-bar" type="button" class="text-xs font-semibold text-amber-300 hover:text-amber-200 whitespace-nowrap">
+          전체 공지 →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-3 py-3.5">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 leading-tight">
+              약술형 논술 일정 트래커
+            </h1>
+            <p class="text-xs text-slate-500">시험 날짜 순 자동 정렬 · 변경 공지 · 매년 자동 업데이트</p>
+          </div>
+        </div>
+
+        <!-- Academic Year Switcher & Quick Add -->
+        <div class="flex items-center gap-2">
+          <div class="inline-flex rounded-lg bg-slate-100 p-1 border border-slate-200" role="group" aria-label="학년도 선택">
+            <button id="year-btn-2027" type="button" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-indigo-700 shadow-sm">
+              2027학년도 <span class="text-[11px] font-semibold opacity-80">(13개교)</span>
+            </button>
+            <button id="year-btn-2028" type="button" class="px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-600 hover:text-slate-900">
+              2028학년도 <span class="text-[11px] font-semibold text-emerald-600">(16개교 +3)</span>
+            </button>
+          </div>
+          <button id="btn-open-add-modal" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">대학 추가</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 sm:gap-6 overflow-x-auto -mb-px" aria-label="주요 메뉴">
+        <button data-tab="schedule" type="button" class="nav-tab tab-active py-3 px-2 text-xs sm:text-sm whitespace-nowrap flex items-center gap-1.5 transition">
+          <i data-lucide="list-ordered" class="w-4 h-4"></i>
+          시험 날짜 순 일정
+        </button>
+        <button data-tab="notices" type="button" class="nav-tab py-3 px-2 text-xs sm:text-sm text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          공지·변경이력
+          <span id="unread-badge" class="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-rose-500 text-white">4</span>
+        </button>
+        <button data-tab="stats" type="button" class="nav-tab py-3 px-2 text-xs sm:text-sm text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          통계·경쟁률 분석
+        </button>
+        <button data-tab="automation" type="button" class="nav-tab py-3 px-2 text-xs sm:text-sm text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-1.5 transition">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          매년 자동 업데이트 설정
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- KPI Summary Strip -->
+    <section id="kpi-strip" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-1">
+          <span>실시 대학 수</span>
+          <i data-lucide="school" class="w-4 h-4 text-indigo-500"></i>
+        </div>
+        <div id="kpi-univ-count" class="text-2xl font-extrabold text-slate-900">13개교</div>
+        <div id="kpi-univ-sub" class="text-[11px] text-slate-500 mt-0.5">수능 전 3개교 · 수능 후 10개교</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-1">
+          <span>총 모집인원</span>
+          <i data-lucide="users" class="w-4 h-4 text-emerald-500"></i>
+        </div>
+        <div id="kpi-quota" class="text-2xl font-extrabold text-slate-900">3,857명</div>
+        <div id="kpi-quota-sub" class="text-[11px] text-slate-500 mt-0.5">가천대 1,036명 최대 규모</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-1">
+          <span>수능최저 미적용</span>
+          <i data-lucide="shield-check" class="w-4 h-4 text-sky-500"></i>
+        </div>
+        <div id="kpi-no-min" class="text-2xl font-extrabold text-slate-900">9개교</div>
+        <div id="kpi-no-min-sub" class="text-[11px] text-slate-500 mt-0.5">논술 100% 선발 6개교</div>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-1">
+          <span>다가오는 가장 빠른 시험</span>
+          <i data-lucide="flame" class="w-4 h-4 text-amber-500"></i>
+        </div>
+        <div id="kpi-next-exam" class="text-lg sm:text-xl font-extrabold text-indigo-700 truncate">강남대·동덕여대</div>
+        <div id="kpi-next-sub" class="text-[11px] text-slate-500 mt-0.5">2026.11.28(토) · D-2</div>
+      </div>
+    </section>
+
+    <!-- My Susi 6-Card Bookmark & Conflict Banner -->
+    <section id="bookmark-bar" class="hidden mb-6 bg-white rounded-xl border border-indigo-200 p-4 shadow-sm">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-2">
+          <i data-lucide="bookmark-check" class="w-4 h-4 text-indigo-600"></i>
+          <h2 class="text-sm font-bold text-slate-900">내 수시 지원 조합 (<span id="bookmark-count">0</span>/6장)</h2>
+        </div>
+        <button id="btn-clear-bookmarks" type="button" class="text-xs text-slate-500 hover:text-rose-600 font-medium">
+          선택 초기화
+        </button>
+      </div>
+      <div id="bookmark-chips" class="flex flex-wrap gap-2"></div>
+      <div id="conflict-alert" class="hidden mt-3 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
+        <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5 text-rose-600"></i>
+        <div id="conflict-alert-text"></div>
+      </div>
+    </section>
+
+    <!-- TAB 1: Schedule (Timeline / Table) -->
+    <section id="tab-schedule" class="tab-panel">
+      <!-- Controls Bar -->
+      <div class="bg-white rounded-xl border border-slate-200 p-4 mb-5 shadow-sm space-y-3">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <!-- Search -->
+          <div class="relative flex-1 max-w-md">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input id="search-input" type="text" placeholder="대학명, 전형명, 출제과목 검색 (예: 가천대, 수학, 2합6)" class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+          </div>
+          <!-- View Toggle & Sort -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="sort-select" class="text-xs font-semibold border border-slate-300 rounded-lg px-2.5 py-2 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="date-asc">시험 날짜 빠른 순 (기본)</option>
+              <option value="date-desc">시험 날짜 늦은 순</option>
+              <option value="quota-desc">모집인원 많은 순</option>
+              <option value="name-asc">대학명 가나다 순</option>
+            </select>
+            <div class="inline-flex rounded-lg border border-slate-300 bg-slate-50 p-0.5">
+              <button id="view-timeline-btn" type="button" class="px-2.5 py-1.5 rounded-md text-xs font-bold bg-white text-indigo-700 shadow-sm flex items-center gap-1">
+                <i data-lucide="git-commit-vertical" class="w-3.5 h-3.5"></i> 타임라인
+              </button>
+              <button id="view-table-btn" type="button" class="px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1">
+                <i data-lucide="table" class="w-3.5 h-3.5"></i> 한눈에 표
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-100">
+          <button data-filter="all" type="button" class="filter-pill filter-active px-3 py-1 rounded-full text-xs font-semibold border border-slate-300 transition">전체</button>
+          <button data-filter="before-csat" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">수능 전</button>
+          <button data-filter="after-csat" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">수능 후</button>
+          <button data-filter="no-min" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">수능최저 없음</button>
+          <button data-filter="has-min" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">수능최저 있음</button>
+          <button data-filter="essay-100" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">논술 100%</button>
+          <button data-filter="new-only" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition">신규·전환 대학</button>
+          <button data-filter="bookmarked" type="button" class="filter-pill px-3 py-1 rounded-full text-xs font-semibold border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition">★ 내 관심대학</button>
+        </div>
+      </div>
+
+      <!-- Year 2028 Info Banner (shown only in 2028 mode) -->
+      <div id="banner-2028" class="hidden mb-5 rounded-xl bg-emerald-50 border border-emerald-200 p-4 flex items-start gap-3">
+        <i data-lucide="sparkles" class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5"></i>
+        <div class="text-xs sm:text-sm text-emerald-950">
+          <p class="font-bold mb-0.5">2028학년도 대입전형 시행계획 기준 (총 16개교 · 3개교 신규 합류)</p>
+          <p class="text-emerald-800 leading-relaxed">
+            <strong>가톨릭대(131명 전환)</strong>, <strong>한성대(99명 신설)</strong>, <strong>인하대(449명 논·서술형 전환 예고)</strong>가 합류하며 서경대(+40명)·국민대(+31명)·한신대(+22명) 모집인원이 확대됩니다.
+            2028학년도 확정 고사일은 <strong>2027년 5월 수시모집요강</strong> 발표 시 자동 업데이트 파이프라인을 통해 갱신됩니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- Timeline View Container -->
+      <div id="schedule-timeline" class="space-y-3"></div>
+
+      <!-- Table View Container -->
+      <div id="schedule-table-wrap" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+        <table class="min-w-full text-left text-xs sm:text-sm">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+            <tr>
+              <th class="py-3 px-4 whitespace-nowrap">시험일 (날짜 순)</th>
+              <th class="py-3 px-4 whitespace-nowrap">대학명</th>
+              <th class="py-3 px-4 whitespace-nowrap">시기</th>
+              <th class="py-3 px-4 whitespace-nowrap">모집인원</th>
+              <th class="py-3 px-4 whitespace-nowrap">전형방법</th>
+              <th class="py-3 px-4 whitespace-nowrap">수능최저</th>
+              <th class="py-3 px-4">문항·시간</th>
+              <th class="py-3 px-4 text-right whitespace-nowrap">상세/관심</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-table-body" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: Notices & Changelog -->
+    <section id="tab-notices" class="tab-panel hidden">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">약술형 논술 추가·변경사항 공지사항</h2>
+          <p class="text-xs text-slate-500">신규 대학 합류, 시험일 이동, 전형 개편, 모집인원 증감 내역이 자동으로 기록됩니다.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btn-mark-all-read" type="button" class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700">
+            모두 읽음 처리
+          </button>
+          <button id="btn-open-notice-modal" type="button" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1">
+            <i data-lucide="megaphone" class="w-3.5 h-3.5"></i> 공지 등록
+          </button>
+        </div>
+      </div>
+      <div id="notices-list" class="space-y-3"></div>
+    </section>
+
+    <!-- TAB 3: Statistics & Charts -->
+    <section id="tab-stats" class="tab-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">대학별 약술형 논술 모집인원 비교</h3>
+              <p id="chart-quota-subtitle" class="text-xs text-slate-500">2027학년도 13개교 총 3,857명 (가천대 전국 최대 규모)</p>
+            </div>
+          </div>
+          <div class="relative h-72">
+            <canvas id="quotaChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-1">수능최저 적용 여부 분포</h3>
+          <p class="text-xs text-slate-500 mb-3">최저 미적용 대학 비중이 높아 내신·수능 부담 완화</p>
+          <div class="relative h-72">
+            <canvas id="minScoreChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Verified 2027 Competition Rates -->
+      <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-900 mb-1">주요 약술형 논술 2027학년도 확인 경쟁률 및 5년 추이</h3>
+        <p class="text-xs text-slate-500 mb-4">출처: 베리타스알파 2026.11.03 보도 (13개교 합산 경쟁률 2023학년 16.5:1 → 2027학년 34.54:1)</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">국민대 (전국 2위)</div>
+            <div class="text-xl font-extrabold text-indigo-700 mt-0.5">131.57 : 1</div>
+            <div class="text-[11px] text-slate-500">205명 / 26,972명 지원</div>
+          </div>
+          <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">상명대</div>
+            <div class="text-xl font-extrabold text-indigo-700 mt-0.5">68.12 : 1</div>
+            <div class="text-[11px] text-slate-500">98명 / 6,676명 지원</div>
+          </div>
+          <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">가천대</div>
+            <div class="text-xl font-extrabold text-indigo-700 mt-0.5">45.20 : 1</div>
+            <div class="text-[11px] text-slate-500">1,036명 / 46,828명 지원</div>
+          </div>
+          <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">한국기술교육대</div>
+            <div class="text-xl font-extrabold text-indigo-700 mt-0.5">28.99 : 1</div>
+            <div class="text-[11px] text-slate-500">5년 새 4배 이상 상승</div>
+          </div>
+          <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-xs text-slate-500 font-medium">동덕여대 (첫 전환)</div>
+            <div class="text-xl font-extrabold text-emerald-700 mt-0.5">13.35 : 1</div>
+            <div class="text-[11px] text-slate-500">266명 / 지원 30% 증가</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: Auto-Update & Automation Pipeline -->
+    <section id="tab-automation" class="tab-panel hidden space-y-6">
+      <!-- Live Feed & Sync Control -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <i data-lucide="radio" class="w-4 h-4 text-emerald-600"></i>
+                자동 업데이트 피드 연결 & 동기화
+              </h3>
+              <p class="text-xs text-slate-500 mt-1">
+                GitHub Pages 등에 배포된 <code>yaksul_data.json</code> URL을 연결하면 페이지 열람 시 최신 연도·신규 대학·변경 공지를 자동으로 불러옵니다.
+              </p>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="feed-url-input" class="block text-xs font-bold text-slate-700">원격 데이터 JSON URL (HTTPS)</label>
+            <div class="flex gap-2">
+              <input id="feed-url-input" type="url" placeholder="https://your-username.github.io/yaksul-tracker/data/yaksul_data.json" class="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <button id="btn-fetch-feed" type="button" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap">
+                피드 동기화
+              </button>
+            </div>
+            <p id="feed-status-msg" class="text-[11px] text-slate-500">현재 내장 검증 데이터(2027·2028학년도)로 실행 중입니다.</p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
+            <button id="btn-simulate-sync" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+              <i data-lucide="scan-search" class="w-3.5 h-3.5"></i> 신규 대학 자동 감지 테스트
+            </button>
+            <button id="btn-export-json" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> 현재 데이터 JSON 내보내기
+            </button>
+            <label class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> JSON 가져오기
+              <input id="input-import-json" type="file" accept=".json,application/json" class="hidden" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Annual Auto-Update Schedule Architecture -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2 mb-3">
+            <i data-lucide="workflow" class="w-4 h-4 text-indigo-600"></i>
+            매년 무인 자동 업데이트 동작 구조
+          </h3>
+          <ol class="space-y-2.5 text-xs text-slate-700">
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">1</span>
+              <div><strong>정기 스케줄 실행 (GitHub Actions)</strong>: 매년 4월(시행계획), 5~6월(수시모집요강), 9~12월(고사장·일정 변경) 주간 자동 실행(Cron).</div>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">2</span>
+              <div><strong>신규 대학 자동 탐색 (Keyword Scanner)</strong>: 대교협 어디가·입시 보도자료·각 대학 입학처 공지에서 <code>"약술형 논술"</code>, <code>"교과논술"</code>, <code>"논술전형 신설"</code> 키워드 감지 시 신규 대학 후보로 자동 편입.</div>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">3</span>
+              <div><strong>Diff 비교 & 자동 공지 발행</strong>: 직전 <code>yaksul_data.json</code>과 비교해 시험일·모집인원·수능최저·신규 대학이 달라지면 <code>notices</code> 배열에 변경 공지를 자동 추가하고 웹사이트에 즉시 반영.</div>
+            </li>
+            <li class="flex items-start gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">4</span>
+              <div><strong>무료 호스팅 배포</strong>: GitHub Pages 또는 Vercel에 이 HTML 파일과 <code>data/yaksul_data.json</code>을 올리면 서버 비용 0원으로 매년 자동 갱신.</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Deployable Code Templates -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+          <div class="flex items-center gap-2">
+            <button data-code="workflow" type="button" class="code-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+              .github/workflows/update-yaksul.yml
+            </button>
+            <button data-code="python" type="button" class="code-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">
+              scripts/sync_yaksul.py
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="btn-copy-code" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> 코드 복사
+            </button>
+            <button id="btn-download-code" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">
+              <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 파일 다운로드
+            </button>
+          </div>
+        </div>
+        <pre id="code-viewer" class="code-block p-4 text-xs text-slate-100 bg-slate-900 overflow-x-auto leading-relaxed max-h-96"></pre>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-5 px-4 mt-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <div>
+        데이터 출처: 2027학년도 대학별 수시모집요강 · 2028학년도 대입전형 시행계획 ·
+        <a href="https://www.veritas-a.com/news/articleView.html?idxno=616626" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600">베리타스알파(2027)</a> ·
+        <a href="https://www.veritas-a.com/news/articleView.html?idxno=634865" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600">베리타스알파(2028)</a> ·
+        <a href="https://www.jinhak.com/jh/high3/univ-entrance-info/ipsi-analysis/ipsi-strategy/100000606" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600">진학사</a>
+      </div>
+      <div>최종 지원 전 반드시 각 대학 입학처 공식 모집요강을 재확인하세요.</div>
+    </div>
+  </footer>
+
+  <!-- University Detail Modal -->
+  <div id="detail-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+      <div class="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between">
+        <div>
+          <div id="modal-badges" class="flex items-center gap-1.5 mb-1"></div>
+          <h3 id="modal-title" class="text-lg font-extrabold text-slate-900">대학명</h3>
+        </div>
+        <button id="btn-close-detail" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100" aria-label="닫기">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="p-5 space-y-4 text-sm"></div>
+      <div class="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-5 py-3 flex items-center justify-between gap-2">
+        <button id="modal-bookmark-btn" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-amber-50 text-xs font-bold text-slate-700">
+          <i data-lucide="star" class="w-4 h-4"></i> 관심대학 담기
+        </button>
+        <a id="modal-official-link" href="https://www.veritas-a.com/news/articleView.html?idxno=616626" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold">
+          공식 입학처 바로가기 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add University Modal -->
+  <div id="add-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900">신규 약술형 논술 대학 추가 (공지 자동 생성)</h3>
+        <button id="btn-close-add" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="add-univ-form" class="p-5 space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">대학명 *</label>
+            <input name="name" required placeholder="예: 명지대학교" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">적용 학년도 *</label>
+            <select name="year" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+              <option value="2027">2027학년도</option>
+              <option value="2028" selected>2028학년도</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">대표 시험일 (정렬 기준) *</label>
+            <input name="examDate" type="date" required value="2026-11-28" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">모집인원 (명) *</label>
+            <input name="quota" type="number" min="1" required placeholder="150" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">전형방법 *</label>
+            <input name="method" required placeholder="논술 80% + 교과 20%" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">수능최저</label>
+            <input name="minScore" placeholder="없음 또는 2개 합 6 이내" value="없음" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">출제과목 및 문항·시간</label>
+          <input name="format" placeholder="국어 6문항 + 수학 6문항 (총 12문항, 80분)" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">공식 입학처 URL (HTTPS)</label>
+          <input name="url" type="url" placeholder="https://admission.example.ac.kr/" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button id="btn-cancel-add" type="button" class="px-4 py-2 rounded-lg border border-slate-300 font-bold text-slate-700 hover:bg-slate-50">취소</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold">등록 및 공지 발행</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Notice Modal -->
+  <div id="notice-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200">
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900">새 변경사항·추가 공지 등록</h3>
+        <button id="btn-close-notice" type="button" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="add-notice-form" class="p-5 space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">분류 *</label>
+          <select name="category" class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white">
+            <option value="신규 대학">신규 대학</option>
+            <option value="일정 변경">일정 변경</option>
+            <option value="전형 개편">전형 개편</option>
+            <option value="공지">일반 공지</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">공지 제목 *</label>
+          <input name="title" required placeholder="예: 2028학년도 수시모집요강 확정 일정 반영" class="w-full px-3 py-2 rounded-lg border border-slate-300" />
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">상세 내용 *</label>
+          <textarea name="body" required rows="3" placeholder="변경된 일정이나 추가된 대학 정보를 입력하세요." class="w-full px-3 py-2 rounded-lg border border-slate-300"></textarea>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button id="btn-cancel-notice" type="button" class="px-4 py-2 rounded-lg border border-slate-300 font-bold text-slate-700 hover:bg-slate-50">취소</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold">공지 게시</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center gap-2">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+    <span id="toast-msg">처리되었습니다.</span>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. VERIFIED DATA (2027 & 2028 학년도 약술형 논술)
+    // =========================================================================
+    const CSAT_DATE_2027 = '2026-11-19';
+    const REFERENCE_TODAY = '2026-11-26'; // 2026년 11월 26일 기준
+
+    const INITIAL_UNIVERSITIES = [
+      {
+        id: 'eulji',
+        name: '을지대학교',
+        shortName: '을지대',
+        years: ['2027', '2028'],
+        examDate: '2026-10-16',
+        examDatesAll: ['2026-10-16', '2026-10-17'],
+        examDateDisplay: '10/16(금) ~ 10/17(토)',
+        timing: '수능 전',
+        quota2027: 251,
+        quota2028: 251,
+        quotaNote: '논술우수자 214명 + 사회기여및배려대상자 37명',
+        method: '논술 80% + 교과 20%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '국어 7문항 + 수학 7문항 (총 14문항, 문항당 10점)',
+        duration: '70분',
+        scope: '국어(언어와 매체, 독서, 문학), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://admission.eulji.ac.kr/index.html?menuno=2750&bbsno=72890&boardno=545&ztag=rO0ABXQAMTxjYWxsIHR5cGU9ImJvYXJkIiBubz0iNTQ1IiBza2luPSJub3RpY2UiPjwvY2FsbD4%3D&siteno=195&act=view'
+      },
+      {
+        id: 'sangmyung',
+        name: '상명대학교',
+        shortName: '상명대',
+        years: ['2027', '2028'],
+        examDate: '2026-10-30',
+        examDatesAll: ['2026-10-30', '2026-10-31'],
+        examDateDisplay: '인문 10/30(금) · 자연 10/31(토)',
+        timing: '수능 전',
+        quota2027: 98,
+        quota2028: 98,
+        quotaNote: '서울캠퍼스 논술전형',
+        method: '논술 90% + 교과 10%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '총 10문항 (인문 국8+수2 / 자연·애니메이션 국2+수8)',
+        duration: '60분',
+        scope: '국어(국어, 문학, 독서, 화작, 언매), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: '68.12 : 1 (6,676명 지원)',
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://admission.smu.ac.kr/_seoul/iphak/mojip.html?bbsid=seoul_mojib&ctg_cd=susi'
+      },
+      {
+        id: 'seokyeong',
+        name: '서경대학교',
+        shortName: '서경대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-01',
+        examDatesAll: ['2026-11-01'],
+        examDateDisplay: '11/01(일)',
+        timing: '수능 전',
+        quota2027: 214,
+        quota2028: 254,
+        quotaNote: '미래융합학부1·2, 자유전공학부, 아트앤테크놀로지학과',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '계열 공통 국어 4문항 + 수학 4문항 (총 8문항, 문항당 10점)',
+        duration: '60분',
+        scope: '국어(문학, 독서), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 논술 모집인원 +40명 확대 (214명 → 254명)',
+        url: 'https://go.skuniv.ac.kr/index.php?mid=rolling_admission_guide'
+      },
+      {
+        id: 'suwon',
+        name: '수원대학교',
+        shortName: '수원대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-21',
+        examDatesAll: ['2026-11-21', '2026-11-22'],
+        examDateDisplay: '자연 11/21(토) · 인문 11/22(일)',
+        timing: '수능 후',
+        quota2027: 434,
+        quota2028: 434,
+        quotaNote: '교과논술전형 (모집규모 전국 2위)',
+        method: '논술 80% + 교과 20%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '총 15문항 (인문 국10+수5 / 자연 국5+수10, 문항당 10점)',
+        duration: '80분',
+        scope: '국어(독서, 문학), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://ipsi.suwon.ac.kr/guide/susi'
+      },
+      {
+        id: 'tukorea',
+        name: '한국공학대학교',
+        shortName: '한국공학대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-22',
+        examDatesAll: ['2026-11-22'],
+        examDateDisplay: '11/22(일)',
+        timing: '수능 후',
+        quota2027: 200,
+        quota2028: 200,
+        quotaNote: '논술우수자전형 (공학계열 중심)',
+        method: '논술 80% + 교과 20%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '수학 단독 9문항 (1~7번 각 10점, 8~9번 각 15점)',
+        duration: '80분',
+        scope: '수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://iphak.tukorea.ac.kr/susi/guide.htm'
+      },
+      {
+        id: 'sahmyook',
+        name: '삼육대학교',
+        shortName: '삼육대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-23',
+        examDatesAll: ['2026-11-23', '2026-11-24'],
+        examDateDisplay: '11/23(월) ~ 11/24(화)',
+        timing: '수능 후',
+        quota2027: 277,
+        quota2028: 277,
+        quotaNote: '논술우수자전형 (약학과 선발 포함)',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: true,
+        minScore: '일반: 국수영탐(1) 중 1개 3등급 / 약학: 국수(미/기)영과(1) 3합 5',
+        format: '인문(국8+수5)·자연(국5+수8) 총 13문항 / 약학(수학 8문항)',
+        duration: '80분',
+        scope: '국어(화작, 문학, 독서, 문법), 수학(수학Ⅰ·Ⅱ / 약학 미적분 포함)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://ipsi.syu.ac.kr/2016_syu/pages/index.asp?p=8&mj=01'
+      },
+      {
+        id: 'koreatech',
+        name: '한국기술교육대학교',
+        shortName: '한국기술교육대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-25',
+        examDatesAll: ['2026-11-25'],
+        examDateDisplay: '11/25(수)',
+        timing: '수능 후',
+        quota2027: 150,
+        quota2028: 150,
+        quotaNote: '공학/ICT계열(수리) · 사회계열(언어)',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '공학/ICT 수리논술 · 사회 자료제시형 언어논술 (각 10문항 내외)',
+        duration: '80분',
+        scope: '공학/ICT(수학Ⅰ, 수학Ⅱ), 사회(국어, 사회)',
+        competition2027: '28.99 : 1',
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://www.koreatech.ac.kr/menu.es?mid=a40101010100'
+      },
+      {
+        id: 'kangnam',
+        name: '강남대학교',
+        shortName: '강남대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-28',
+        examDatesAll: ['2026-11-28'],
+        examDateDisplay: '11/28(토)',
+        timing: '수능 후',
+        quota2027: 309,
+        quota2028: 309,
+        quotaNote: '인문사회·공학·자유전공학부 전반 선발',
+        method: '논술 80% + 교과 20%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '총 10문항 (인문 국8+수2 / 공학 국3+수7 / 자유전공 국5+수5)',
+        duration: '모집요강 확인',
+        scope: '국어(문학, 독서), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://admission.kangnam.ac.kr/iphak/jaryo.htm?bbsid=data_prev_year&ctg_cd='
+      },
+      {
+        id: 'dongduk',
+        name: '동덕여자대학교',
+        shortName: '동덕여대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-28',
+        examDatesAll: ['2026-11-28'],
+        examDateDisplay: '11/28(토)',
+        timing: '수능 후',
+        quota2027: 266,
+        quota2028: 266,
+        quotaNote: '2027학년도 서술형 → 약술형 전면 개편 첫 해',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: true,
+        minScore: '전 모집단위 국수영탐(1) 중 2개 합 6 이내',
+        format: '총 8문항 (인문사회 국6+수2 / 자연 국2+수6)',
+        duration: '60분',
+        scope: '국어(국어, 문학, 독서, 화작, 언매), 수학(수학, 수학Ⅰ, 수학Ⅱ)',
+        competition2027: '13.35 : 1 (3,552명 지원 · 전년 대비 +30%)',
+        isNew2027: true,
+        isNew2028: false,
+        changeNote2028: '2027학년도 약술형 첫 전환 후 2028학년도 유지',
+        url: 'https://ipsi.dongduk.ac.kr/ipsi/contents/nontime-viewer.do?gotoMenuNo=nontime-viewer'
+      },
+      {
+        id: 'shinhan',
+        name: '신한대학교',
+        shortName: '신한대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-29',
+        examDatesAll: ['2026-11-29'],
+        examDateDisplay: '11/29(일)',
+        timing: '수능 후',
+        quota2027: 186,
+        quota2028: 186,
+        quotaNote: '2027학년도 전 계열 공통 14문항으로 변경',
+        method: '논술 90% + 교과 10%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '전 계열 공통 국어 7문항 + 수학 7문항 (총 14문항, 10~15점 차등)',
+        duration: '모집요강 확인',
+        scope: '국어(문학, 독서), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 시행계획 유지 (세부 일정 2027년 5월 요강 확정)',
+        url: 'https://ipsi.shinhan.ac.kr/gomenucontroll.do?menuNO=10120200'
+      },
+      {
+        id: 'gachon',
+        name: '가천대학교',
+        shortName: '가천대',
+        years: ['2027', '2028'],
+        examDate: '2026-11-29',
+        examDatesAll: ['2026-11-29', '2026-11-30', '2026-12-01'],
+        examDateDisplay: '의약학 11/29(일) · 인문/간호/바이오 11/30(월) · 자연 12/01(화)',
+        timing: '수능 후',
+        quota2027: 1036,
+        quota2028: 1036,
+        quotaNote: '전국 논술 최대 규모 · 2027 한의예·약학 논술 신설',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: true,
+        minScore: '인문·자연: 1개 3등급 / 바이오로직스: 2합 5 / 의예: 3개 1등급 / 한의예: 2개 1등급 / 약학: 3합 5',
+        format: '인문(국8+수5)·자연(국5+수8) 총 13문항 / 의약학(수학 8문항)',
+        duration: '80분',
+        scope: '국어(1학년 국어, 문학, 독서, 화법, 작문, 문법), 수학(수학Ⅰ·Ⅱ / 의약학 미적분 포함)',
+        competition2027: '45.20 : 1 (46,828명 지원)',
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 약술형 대표 최대 규모 유지',
+        url: 'https://admission.gachon.ac.kr/upload/BBS0021/20260522154511HBZYTW.PDF'
+      },
+      {
+        id: 'hanshin',
+        name: '한신대학교',
+        shortName: '한신대',
+        years: ['2027', '2028'],
+        examDate: '2026-12-05',
+        examDatesAll: ['2026-12-05'],
+        examDateDisplay: '12/05(토)',
+        timing: '수능 후',
+        quota2027: 231,
+        quota2028: 253,
+        quotaNote: '논술전형 (노트 형식 답안지)',
+        method: '논술 80% + 교과 20%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '총 15문항 (인문 국10+수5 / 자연 국5+수10, 문항당 8점)',
+        duration: '80분',
+        scope: '국어(문학, 독서), 수학(수학Ⅰ, 수학Ⅱ)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 논술 모집인원 +22명 확대 (231명 → 253명)',
+        url: 'https://ent.hs.ac.kr/'
+      },
+      {
+        id: 'kookmin',
+        name: '국민대학교',
+        shortName: '국민대',
+        years: ['2027', '2028'],
+        examDate: '2026-12-05',
+        examDatesAll: ['2026-12-05', '2026-12-06'],
+        examDateDisplay: '인문 12/05(토) · 자연 12/06(일)',
+        timing: '수능 후',
+        quota2027: 205,
+        quota2028: 236,
+        quotaNote: '약술형 논술 2년차 (전국 논술 경쟁률 2위)',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: true,
+        minScore: '인문·자연 국수영탐(1) 중 2개 합 6 이내 (자연은 과탐)',
+        format: '총 10문항 (인문 국8+수2 / 자연 국2+수8, 계열별 80%:20% 반영)',
+        duration: '90분',
+        scope: '국어(국어, 문학, 독서), 수학(수학, 수학Ⅰ, 수학Ⅱ / 자연 미적분 포함)',
+        competition2027: '131.57 : 1 (26,972명 지원 · 전국 2위)',
+        isNew2027: false,
+        isNew2028: false,
+        changeNote2028: '2028학년도 논술 모집인원 +31명 확대 (205명 → 236명)',
+        url: 'https://admission.kookmin.ac.kr/helper/notice.php?ctype=view&s_key=&s_word=&category=all&page=&no=1063'
+      },
+      // === 2028학년도 신규 합류 3개교 ===
+      {
+        id: 'catholic',
+        name: '가톨릭대학교',
+        shortName: '가톨릭대',
+        years: ['2028'],
+        examDate: '2027-10-15',
+        examDatesAll: [],
+        examDateDisplay: '2027년 5월 수시요강 확정 예정 (기존 10월 수능 전 시행)',
+        timing: '수능 전',
+        quota2027: 0,
+        quota2028: 131,
+        quotaNote: '2028 약술형 신규 전환 (의예21·약학6·간호18 제외 131명)',
+        method: '논술 100%',
+        essay100: true,
+        hasMinScore: false,
+        minScore: '없음 (약술형 모집단위 기준, 의·약·간호 별도)',
+        format: '총 12문항 (인문사회 국10+수2 / 자연공학 국2+수10)',
+        duration: '90분',
+        scope: '국어·수학 고교 교육과정 (세부 범위 모의논술·요강 공개 예정)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: true,
+        changeNote2028: '2028학년도 기존 논술 → 약술형 논술 131명 신규 전환 확정',
+        url: 'https://www.catholic.ac.kr/'
+      },
+      {
+        id: 'hansung',
+        name: '한성대학교',
+        shortName: '한성대',
+        years: ['2028'],
+        examDate: '2027-11-25',
+        examDatesAll: [],
+        examDateDisplay: '2027년 5월 수시요강 확정 예정',
+        timing: '수능 후',
+        quota2027: 0,
+        quota2028: 99,
+        quotaNote: '2028 약술형 논술전형 신설 (IT공과39·상상력20·사회22·인문18)',
+        method: '논술 80% + 교과 20%',
+        essay100: false,
+        hasMinScore: false,
+        minScore: '없음',
+        format: '약술형 논술 신설 확정 (세부 문항·시간 수시요강 공개 예정)',
+        duration: '요강 공개 예정',
+        scope: '세부 출제과목 및 범위 2027년 5월 수시요강·모의논술 확인',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: true,
+        changeNote2028: '2028학년도 약술형 논술전형 99명 신규 신설 확정',
+        url: 'https://enter.hansung.ac.kr/'
+      },
+      {
+        id: 'inha',
+        name: '인하대학교',
+        shortName: '인하대',
+        years: ['2028'],
+        examDate: '2027-12-04',
+        examDatesAll: [],
+        examDateDisplay: '2027년 5월 수시요강 확정 예정 (기존 12월 초 시행)',
+        timing: '수능 후',
+        quota2027: 0,
+        quota2028: 449,
+        quotaNote: '2028 논·서술형(약술형 유력) 전환 예고 (의예 포함 449명)',
+        method: '논술 90% + 교과 10%',
+        essay100: false,
+        hasMinScore: true,
+        minScore: '의예 제외: 국수영탐(통합사회/과학 중 1) 2개 합 6 이내 신설',
+        format: '논·서술형(약술형 유력) 전환 예고 (세부 문항 모의논술 공개 예정)',
+        duration: '요강 공개 예정',
+        scope: '고교 교육과정 충실 출제 예고 (세부 범위 모의논술·요강 확인)',
+        competition2027: null,
+        isNew2027: false,
+        isNew2028: true,
+        changeNote2028: '2028학년도 논술 비중 80%→90% 확대, 일반 2합6 최저 신설, 논·서술형 전환 예고',
+        url: 'https://admission.inha.ac.kr/'
+      }
+    ];
+
+    const INITIAL_NOTICES = [
+      {
+        id: 'n-20261110',
+        date: '2026-11-10',
+        category: '신규 대학',
+        title: '[2028학년도 자동 반영] 가톨릭대·한성대·인하대 3개교 약술형 논술 합류 (총 16개교)',
+        body: '2028학년도 대입전형 시행계획 분석 결과 가톨릭대(131명 전환, 논술100%, 최저없음), 한성대(99명 신설, 논술80+교과20, 최저없음), 인하대(449명 논·서술형 전환 예고, 논술90%, 의예 제외 2합6 신설)가 신규 합류하여 약술형 실시 대학이 16개교로 확대됩니다.',
+        sourceUrl: 'https://www.veritas-a.com/news/articleView.html?idxno=634865',
+        read: false
+      },
+      {
+        id: 'n-20261103',
+        date: '2026-11-03',
+        category: '전형 개편',
+        title: '[2028학년도 증원 예고] 서경대(+40명)·국민대(+31명)·한신대(+22명) 모집인원 확대',
+        body: '2027학년도 약술형 논술 13개교 합산 경쟁률이 34.54:1(국민대 131.57:1 전국 2위)로 역대 최고치를 기록한 가운데, 2028학년도에는 서경대·국민대·한신대가 논술 선발 규모를 확대합니다.',
+        sourceUrl: 'https://www.veritas-a.com/news/articleView.html?idxno=634865',
+        read: false
+      },
+      {
+        id: 'n-20260715',
+        date: '2026-07-15',
+        category: '일정 변경',
+        title: '[2027학년도 일정 주의] 서경대 11/1(일) 이동 및 수능 후 주요 중복 시험일 안내',
+        body: '전년도 9월 말에 치르던 서경대가 2027학년도에는 11월 1일(일)로 이동했습니다. 수능(11/19) 이후에는 11/22(수원대 인문·한국공학대), 11/28(강남대·동덕여대), 11/29(신한대·가천대 의약학), 12/5(한신대·국민대 인문) 날짜가 겹치므로 지원 조합 확인이 필요합니다.',
+        sourceUrl: 'https://mdsisite.tistory.com/2027',
+        read: false
+      },
+      {
+        id: 'n-20260625',
+        date: '2026-06-25',
+        category: '전형 개편',
+        title: '[2027학년도 주요 변경] 동덕여대 약술형 첫 전환 · 가천대 한의예/약학 신설 · 서경대 논술100%',
+        body: '2027학년도에는 동덕여대(266명)가 약술형으로 전면 개편하고, 가천대(1,036명)가 한의예·약학 논술을 신설했습니다. 서경대는 교과 반영을 폐지해 논술100%로 전환했으며, 신한대는 전 계열 공통 14문항으로 개편했습니다.',
+        sourceUrl: 'https://www.veritas-a.com/news/articleView.html?idxno=616626',
+        read: false
+      }
+    ];
+
+    // =========================================================================
+    // 2. DEPLOYABLE AUTO-UPDATE CODE TEMPLATES (GitHub Actions + Python)
+    // =========================================================================
+    const CODE_TEMPLATES = {
+      workflow: {
+        filename: 'update-yaksul.yml',
+        content: `name: Annual Yaksul Schedule Auto-Updater
+
+on:
+  schedule:
+    # 매년 4~6월(시행계획·수시요강 시즌) 및 9~12월(고사 일정 변경) 매주 월요일 09:00 KST (00:00 UTC)
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # 수동 즉시 실행 가능
+
+permissions:
+  contents: write
+
+jobs:
+  sync-yaksul-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 feedparser
+
+      - name: Run Yaksul schedule & new university detector
+        run: python scripts/sync_yaksul.py
+
+      - name: Commit & Push updated JSON + auto notices
+        run: |
+          git config user.name "Yaksul-AutoBot"
+          git config user.email "bot@yaksul-tracker.local"
+          git add data/yaksul_data.json
+          git diff --staged --quiet || git commit -m "chore: auto-update yaksul schedule & notices ($(date +%Y-%m-%d))"
+          git push`
+      },
+      python: {
+        filename: 'sync_yaksul.py',
+        content: `#!/usr/bin/env python3
+"""
+약술형 논술 일정 자동 수집·신규 대학 감지·변경사항 공지 자동 발행 스크립트
+- 기존 data/yaksul_data.json을 읽고, 공개 입시 RSS/공지 페이지를 스캔합니다.
+- 새로운 약술형 논술 대학 키워드 또는 일정/인원 변경을 감지하면
+  자동으로 universities 목록을 갱신하고 notices에 변경 공지를 추가합니다.
+"""
+import json
+import re
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+import requests
+from bs4 import BeautifulSoup
+
+DATA_PATH = Path("data/yaksul_data.json")
+KST = timezone(timedelta(hours=9))
+TODAY = datetime.now(KST).strftime("%Y-%m-%d")
+
+# 모니터링할 입시 뉴스/공지 소스 (필요에 따라 대학 입학처 RSS/게시판 추가)
+MONITOR_FEEDS = [
+    {"name": "베리타스알파 대입", "url": "https://www.veritas-a.com/rss/allArticle.xml"},
+]
+
+KEYWORDS = ["약술형 논술", "약술형", "교과논술", "논술전형 신설"]
+UNIV_PATTERN = re.compile(r"([가-힣]{2,6}대(?:학교)?)")
+
+
+def load_data():
+    if not DATA_PATH.exists():
+        return {"lastSynced": TODAY, "universities": [], "notices": []}
+    return json.loads(DATA_PATH.read_text(encoding="utf-8"))
+
+
+def scan_for_updates(data):
+    existing_names = {u["shortName"] for u in data["universities"]}
+    existing_notice_titles = {n["title"] for n in data["notices"]}
+    new_hits = []
+
+    for feed in MONITOR_FEEDS:
+        try:
+            resp = requests.get(feed["url"], timeout=15)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.content, "xml")
+            for item in soup.find_all("item")[:40]:
+                title = (item.title.text or "").strip()
+                link = (item.link.text or "").strip()
+                if any(kw in title for kw in KEYWORDS):
+                    detected_univs = set(UNIV_PATTERN.findall(title))
+                    for univ in detected_univs:
+                        short = univ.replace("대학교", "대")
+                        if short not in existing_names and len(short) >= 3:
+                            new_hits.append((short, title, link))
+        except Exception as err:
+            print(f"[WARN] Feed fetch failed ({feed['name']}): {err}")
+
+    # 신규 감지 대학 자동 추가 및 공지 생성
+    next_year = str(datetime.now(KST).year + 2)
+    for short, title, link in new_hits:
+        notice_title = f"[자동 감지] {short} 약술형 논술 관련 신규 소식"
+        if notice_title in existing_notice_titles:
+            continue
+        data["universities"].append({
+            "id": f"auto-{short}-{TODAY}",
+            "name": f"{short}학교" if not short.endswith("학교") else short,
+            "shortName": short,
+            "years": [next_year],
+            "examDate": f"{int(next_year)-1}-11-25",
+            "examDatesAll": [],
+            "examDateDisplay": "수시모집요강 확정 대기 (자동 감지됨)",
+            "timing": "수능 후",
+            "quota2027": 0,
+            "quota2028": 0,
+            "quotaNote": "자동 감지된 후보 대학 — 공식 입학처 요강 확인 필요",
+            "method": "요강 확인 필요",
+            "essay100": False,
+            "hasMinScore": False,
+            "minScore": "요강 확인 필요",
+            "format": "요강 확인 필요",
+            "duration": "요강 확인 필요",
+            "scope": "요강 확인 필요",
+            "competition2027": None,
+            "isNew2027": False,
+            "isNew2028": True,
+            "changeNote2028": f"자동 수집 출처: {title}",
+            "url": link
+        })
+        data["notices"].insert(0, {
+            "id": f"auto-{TODAY}-{short}",
+            "date": TODAY,
+            "category": "신규 대학",
+            "title": notice_title,
+            "body": f"자동 모니터링에서 '{title}' 기사가 감지되어 {short} 항목이 후보 목록에 추가되었습니다.",
+            "sourceUrl": link,
+            "read": False
+        })
+        existing_names.add(short)
+        existing_notice_titles.add(notice_title)
+
+    # 시험 날짜 순 재정렬
+    data["universities"].sort(key=lambda u: u.get("examDate", "9999-12-31"))
+    data["lastSynced"] = TODAY
+    return data
+
+
+if __name__ == "__main__":
+    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
+    current = load_data()
+    updated = scan_for_updates(current)
+    DATA_PATH.write_text(json.dumps(updated, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[OK] Synced {len(updated['universities'])} universities on {TODAY}")`
+      }
+    };
+
+    // =========================================================================
+    // 3. STATE MANAGEMENT
+    // =========================================================================
+    const STORAGE_KEY = 'yaksul_tracker_state_v1';
+
+    let state = {
+      year: '2027',
+      activeTab: 'schedule',
+      viewMode: 'timeline',
+      filter: 'all',
+      sort: 'date-asc',
+      search: '',
+      bookmarks: ['gachon', 'kookmin', 'dongduk'],
+      universities: JSON.parse(JSON.stringify(INITIAL_UNIVERSITIES)),
+      notices: JSON.parse(JSON.stringify(INITIAL_NOTICES)),
+      activeCodeTab: 'workflow',
+      lastSynced: '2026.11.26',
+      feedUrl: ''
+    };
+
+    function loadSavedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.universities) && parsed.universities.length > 0) {
+          state.universities = parsed.universities;
+        }
+        if (Array.isArray(parsed.notices) && parsed.notices.length > 0) {
+          state.notices = parsed.notices;
+        }
+        if (Array.isArray(parsed.bookmarks)) {
+          state.bookmarks = parsed.bookmarks;
+        }
+        if (parsed.feedUrl) state.feedUrl = parsed.feedUrl;
+        if (parsed.lastSynced) state.lastSynced = parsed.lastSynced;
+      } catch (e) {
+        // Ignore storage errors in restricted environments
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          universities: state.universities,
+          notices: state.notices,
+          bookmarks: state.bookmarks,
+          feedUrl: state.feedUrl,
+          lastSynced: state.lastSynced
+        }));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+
+    // =========================================================================
+    // 4. HELPERS
+    // =========================================================================
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toast-msg');
+      msgEl.textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3200);
+    }
+
+    function getQuota(u) {
+      return state.year === '2028' ? (u.quota2028 || u.quota2027 || 0) : (u.quota2027 || 0);
+    }
+
+    function calcDDay(dateStr) {
+      if (!dateStr) return { label: '일정 예정', tone: 'slate', diff: 9999 };
+      const today = new Date(REFERENCE_TODAY + 'T00:00:00');
+      const target = new Date(dateStr + 'T00:00:00');
+      const diff = Math.round((target - today) / (1000 * 60 * 60 * 24));
+      if (state.year === '2028') {
+        return { label: '2028 예고', tone: 'emerald', diff };
+      }
+      if (diff < 0) return { label: '시험 종료', tone: 'slate', diff };
+      if (diff === 0) return { label: 'D-DAY', tone: 'rose', diff };
+      if (diff <= 7) return { label: `D-${diff}`, tone: 'amber', diff };
+      return { label: `D-${diff}`, tone: 'indigo', diff };
+    }
+
+    function getYearUniversities() {
+      return state.universities.filter(u => u.years.includes(state.year));
+    }
+
+    function getFilteredUniversities() {
+      let list = getYearUniversities();
+
+      if (state.filter === 'before-csat') list = list.filter(u => u.timing === '수능 전');
+      else if (state.filter === 'after-csat') list = list.filter(u => u.timing === '수능 후');
+      else if (state.filter === 'no-min') list = list.filter(u => !u.hasMinScore);
+      else if (state.filter === 'has-min') list = list.filter(u => u.hasMinScore);
+      else if (state.filter === 'essay-100') list = list.filter(u => u.essay100);
+      else if (state.filter === 'new-only') list = list.filter(u => (state.year === '2028' ? u.isNew2028 : u.isNew2027));
+      else if (state.filter === 'bookmarked') list = list.filter(u => state.bookmarks.includes(u.id));
+
+      const q = state.search.trim().toLowerCase();
+      if (q) {
+        list = list.filter(u =>
+          u.name.toLowerCase().includes(q) ||
+          u.shortName.toLowerCase().includes(q) ||
+          u.method.toLowerCase().includes(q) ||
+          u.minScore.toLowerCase().includes(q) ||
+          u.format.toLowerCase().includes(q) ||
+          u.scope.toLowerCase().includes(q)
+        );
+      }
+
+      list.sort((a, b) => {
+        if (state.sort === 'date-asc') return (a.examDate || '9999').localeCompare(b.examDate || '9999');
+        if (state.sort === 'date-desc') return (b.examDate || '0000').localeCompare(a.examDate || '0000');
+        if (state.sort === 'quota-desc') return getQuota(b) - getQuota(a);
+        if (state.sort === 'name-asc') return a.name.localeCompare(b.name, 'ko');
+        return 0;
+      });
+
+      return list;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // =========================================================================
+    // 5. RENDER FUNCTIONS
+    // =========================================================================
+    let quotaChartInstance = null;
+    let minScoreChartInstance = null;
+
+    function renderKPIs() {
+      const list = getYearUniversities();
+      const beforeCount = list.filter(u => u.timing === '수능 전').length;
+      const afterCount = list.filter(u => u.timing === '수능 후').length;
+      const totalQuota = list.reduce((acc, u) => acc + getQuota(u), 0);
+      const noMinCount = list.filter(u => !u.hasMinScore).length;
+      const essay100Count = list.filter(u => u.essay100).length;
+
+      document.getElementById('kpi-univ-count').textContent = `${list.length}개교`;
+      document.getElementById('kpi-univ-sub').textContent = `수능 전 ${beforeCount}개교 · 수능 후 ${afterCount}개교`;
+
+      document.getElementById('kpi-quota').textContent = `${totalQuota.toLocaleString()}명`;
+      document.getElementById('kpi-quota-sub').textContent = state.year === '2028'
+        ? '신규 3개교 합류 + 기존 3개교 증원 반영'
+        : '가천대 1,036명 전국 최대 규모';
+
+      document.getElementById('kpi-no-min').textContent = `${noMinCount}개교`;
+      document.getElementById('kpi-no-min-sub').textContent = `논술 100% 선발 ${essay100Count}개교`;
+
+      if (state.year === '2027') {
+        const upcoming = list
+          .map(u => ({ u, d: calcDDay(u.examDate) }))
+          .filter(x => x.d.diff >= 0)
+          .sort((a, b) => a.d.diff - b.d.diff);
+        if (upcoming.length > 0) {
+          const earliestDiff = upcoming[0].d.diff;
+          const sameDay = upcoming.filter(x => x.d.diff === earliestDiff).map(x => x.u.shortName);
+          document.getElementById('kpi-next-exam').textContent = sameDay.join(' · ');
+          document.getElementById('kpi-next-sub').textContent = `${upcoming[0].u.examDate} · ${upcoming[0].d.label}`;
+        } else {
+          document.getElementById('kpi-next-exam').textContent = '2027 일정 완료';
+          document.getElementById('kpi-next-sub').textContent = '2028학년도 탭에서 내년 계획을 확인하세요';
+        }
+      } else {
+        document.getElementById('kpi-next-exam').textContent = '2027년 5월 요강';
+        document.getElementById('kpi-next-sub').textContent = '확정 고사일 발표 시 자동 반영';
+      }
+
+      document.getElementById('last-sync-label').textContent = `최종 동기화: ${state.lastSynced}`;
+    }
+
+    function renderBookmarks() {
+      const bar = document.getElementById('bookmark-bar');
+      const chips = document.getElementById('bookmark-chips');
+      const countEl = document.getElementById('bookmark-count');
+      const alertBox = document.getElementById('conflict-alert');
+      const alertText = document.getElementById('conflict-alert-text');
+
+      const yearList = getYearUniversities();
+      const selected = yearList.filter(u => state.bookmarks.includes(u.id));
+
+      if (selected.length === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+      bar.classList.remove('hidden');
+      countEl.textContent = selected.length;
+
+      chips.innerHTML = selected.map(u => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-bold text-indigo-800">
+          ${escapeHtml(u.shortName)}
+          <span class="text-[11px] font-medium text-indigo-600">${state.year === '2027' ? escapeHtml(u.examDate.slice(5)) : '2028예고'}</span>
+          <button type="button" data-remove-bm="${u.id}" class="hover:text-rose-600 ml-0.5" aria-label="제거">×</button>
+        </span>
+      `).join('');
+
+      // Check date conflicts for 2027
+      if (state.year === '2027') {
+        const dateMap = {};
+        selected.forEach(u => {
+          (u.examDatesAll || [u.examDate]).forEach(d => {
+            if (!dateMap[d]) dateMap[d] = [];
+            dateMap[d].push(u.shortName);
+          });
+        });
+        const conflicts = Object.entries(dateMap).filter(([, names]) => names.length > 1);
+        if (conflicts.length > 0) {
+          alertBox.classList.remove('hidden');
+          alertText.innerHTML = `<strong>시험일 중복 감지:</strong> ` +
+            conflicts.map(([d, names]) => `${d} (${names.join(' + ')})`).join(', ') +
+            ` — 계열별·오전/오후 시간대가 다른지 반드시 모집요강을 확인하세요.`;
+        } else {
+          alertBox.classList.add('hidden');
+        }
+      } else {
+        alertBox.classList.add('hidden');
+      }
+    }
+
+    function renderSchedule() {
+      const list = getFilteredUniversities();
+      const timelineEl = document.getElementById('schedule-timeline');
+      const tableWrap = document.getElementById('schedule-table-wrap');
+      const tableBody = document.getElementById('schedule-table-body');
+
+      document.getElementById('banner-2028').classList.toggle('hidden', state.year !== '2028');
+
+      if (state.viewMode === 'timeline') {
+        timelineEl.classList.remove('hidden');
+        tableWrap.classList.add('hidden');
+      } else {
+        timelineEl.classList.add('hidden');
+        tableWrap.classList.remove('hidden');
+      }
+
+      if (list.length === 0) {
+        const emptyHtml = `
+          <div class="bg-white rounded-xl border border-slate-200 p-10 text-center">
+            <p class="text-sm font-bold text-slate-700">조건에 맞는 약술형 논술 대학이 없습니다.</p>
+            <p class="text-xs text-slate-500 mt-1">검색어나 필터를 초기화해 보세요.</p>
+          </div>`;
+        timelineEl.innerHTML = emptyHtml;
+        tableBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500 text-xs">조건에 맞는 대학이 없습니다.</td></tr>`;
+        return;
+      }
+
+      // Render Timeline
+      let html = '';
+      let insertedCsatDivider = false;
+
+      list.forEach((u) => {
+        if (state.sort === 'date-asc' && !insertedCsatDivider && u.timing === '수능 후') {
+          insertedCsatDivider = true;
+          html += `
+            <div class="flex items-center gap-3 py-2">
+              <div class="flex-1 h-px bg-rose-200"></div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-extrabold">
+                <i data-lucide="flag" class="w-3.5 h-3.5"></i>
+                ${state.year === '2027' ? '2027학년도 수능일 (2026.11.19 목) — 이후 수능 후 논술 집중' : '2028학년도 수능 이후 논술 실시 대학'}
+              </div>
+              <div class="flex-1 h-px bg-rose-200"></div>
+            </div>`;
+        }
+
+        const dday = calcDDay(u.examDate);
+        const badgeStyles = {
+          rose: 'bg-rose-100 text-rose-700 border-rose-200',
+          amber: 'bg-amber-100 text-amber-800 border-amber-200',
+          indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+          emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+          slate: 'bg-slate-100 text-slate-600 border-slate-200'
+        }[dday.tone];
+
+        const isBookmarked = state.bookmarks.includes(u.id);
+        const quota = getQuota(u);
+        const isNewBadge = (state.year === '2028' && u.isNew2028)
+          ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-600 text-white">2028 신규 합류</span>'
+          : (state.year === '2027' && u.isNew2027)
+            ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-violet-600 text-white">2027 약술형 전환</span>'
+            : '';
+
+        const quotaDelta = (state.year === '2028' && u.quota2027 > 0 && u.quota2028 > u.quota2027)
+          ? `<span class="text-[11px] font-bold text-emerald-600 ml-1">(+${u.quota2028 - u.quota2027}명)</span>`
+          : '';
+
+        html += `
+          <article class="bg-white rounded-xl border ${isBookmarked ? 'border-indigo-300 ring-1 ring-indigo-100' : 'border-slate-200'} p-4 sm:p-5 shadow-sm hover:shadow-md transition">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div class="flex items-start gap-3.5 min-w-0">
+                <div class="shrink-0 w-16 sm:w-20 rounded-xl bg-slate-50 border border-slate-200 p-2 text-center">
+                  <div class="text-[10px] font-bold ${u.timing === '수능 전' ? 'text-sky-600' : 'text-indigo-600'}">${escapeHtml(u.timing)}</div>
+                  <div class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">
+                    ${state.year === '2027' ? escapeHtml(u.examDate.slice(5).replace('-', '.')) : '2028'}
+                  </div>
+                  <div class="mt-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeStyles}">
+                    ${escapeHtml(dday.label)}
+                  </div>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                    <h3 class="text-base font-extrabold text-slate-900">${escapeHtml(u.name)}</h3>
+                    ${isNewBadge}
+                    ${u.essay100 ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">논술 100%</span>' : ''}
+                    ${!u.hasMinScore ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">수능최저 없음</span>' : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">수능최저 적용</span>'}
+                  </div>
+                  <p class="text-xs sm:text-sm font-bold text-indigo-700 mb-1.5 flex items-center gap-1">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5 shrink-0"></i>
+                    ${escapeHtml(u.examDateDisplay)}
+                  </p>
+                  <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                    <span><strong>모집:</strong> ${quota > 0 ? quota.toLocaleString() + '명' : '요강 확인'}${quotaDelta}</span>
+                    <span><strong>전형:</strong> ${escapeHtml(u.method)}</span>
+                    <span><strong>시간:</strong> ${escapeHtml(u.duration)}</span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-1 line-clamp-1">${escapeHtml(u.format)} · 최저: ${escapeHtml(u.minScore)}</p>
+                </div>
+              </div>
+
+              <div class="shrink-0 flex items-center gap-2 self-end md:self-center">
+                <button type="button" data-bookmark="${u.id}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-bold transition ${isBookmarked ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'}">
+                  <i data-lucide="star" class="w-3.5 h-3.5 ${isBookmarked ? 'fill-amber-400 text-amber-500' : ''}"></i>
+                  ${isBookmarked ? '관심중' : '담기'}
+                </button>
+                <button type="button" data-detail="${u.id}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-indigo-600 text-white text-xs font-bold transition">
+                  상세정보 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          </article>`;
+      });
+
+      timelineEl.innerHTML = html;
+
+      // Render Table
+      tableBody.innerHTML = list.map(u => {
+        const isBookmarked = state.bookmarks.includes(u.id);
+        const quota = getQuota(u);
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-bold text-indigo-700 whitespace-nowrap">${escapeHtml(u.examDateDisplay)}</td>
+            <td class="py-3 px-4 font-extrabold text-slate-900 whitespace-nowrap">
+              ${escapeHtml(u.shortName)}
+              ${(state.year === '2028' && u.isNew2028) ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px]">신규</span>' : ''}
+            </td>
+            <td class="py-3 px-4 whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${u.timing === '수능 전' ? 'bg-sky-50 text-sky-700' : 'bg-indigo-50 text-indigo-700'}">${escapeHtml(u.timing)}</span>
+            </td>
+            <td class="py-3 px-4 font-bold text-slate-800 whitespace-nowrap">${quota > 0 ? quota.toLocaleString() + '명' : '요강확인'}</td>
+            <td class="py-3 px-4 text-slate-700 whitespace-nowrap">${escapeHtml(u.method)}</td>
+            <td class="py-3 px-4 text-slate-700 max-w-[200px] truncate" title="${escapeHtml(u.minScore)}">${escapeHtml(u.minScore)}</td>
+            <td class="py-3 px-4 text-slate-600 text-xs">${escapeHtml(u.format)} (${escapeHtml(u.duration)})</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap space-x-1">
+              <button type="button" data-bookmark="${u.id}" class="px-2 py-1 rounded border text-xs font-bold ${isBookmarked ? 'bg-amber-50 border-amber-300 text-amber-700' : 'border-slate-300 text-slate-600'}">★</button>
+              <button type="button" data-detail="${u.id}" class="px-2.5 py-1 rounded bg-indigo-600 text-white text-xs font-bold">상세</button>
+            </td>
+          </tr>`;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderNotices() {
+      const container = document.getElementById('notices-list');
+      const unreadCount = state.notices.filter(n => !n.read).length;
+      const badge = document.getElementById('unread-badge');
+      badge.textContent = unreadCount;
+      badge.classList.toggle('hidden', unreadCount === 0);
+
+      if (state.notices.length > 0) {
+        document.getElementById('ticker-notice-btn').textContent = state.notices[0].title;
+      }
+
+      const catColor = {
+        '신규 대학': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        '일정 변경': 'bg-amber-100 text-amber-800 border-amber-200',
+        '전형 개편': 'bg-indigo-100 text-indigo-800 border-indigo-200',
+        '공지': 'bg-slate-100 text-slate-700 border-slate-200'
+      };
+
+      container.innerHTML = state.notices.map(n => `
+        <article class="bg-white rounded-xl border ${n.read ? 'border-slate-200' : 'border-indigo-300 ring-1 ring-indigo-50'} p-4 sm:p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-bold border ${catColor[n.category] || catColor['공지']}">${escapeHtml(n.category)}</span>
+              ${!n.read ? '<span class="w-2 h-2 rounded-full bg-rose-500" title="읽지 않음"></span>' : ''}
+              <span class="text-xs text-slate-400 font-medium">${escapeHtml(n.date)}</span>
+            </div>
+            ${n.sourceUrl ? `<a href="${escapeHtml(n.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold text-indigo-600 hover:underline inline-flex items-center gap-1">출처 보기 <i data-lucide="external-link" class="w-3 h-3"></i></a>` : ''}
+          </div>
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mb-1">${escapeHtml(n.title)}</h3>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">${escapeHtml(n.body)}</p>
+        </article>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderCharts() {
+      const list = getYearUniversities().slice().sort((a, b) => getQuota(b) - getQuota(a));
+      const labels = list.map(u => u.shortName);
+      const quotas = list.map(u => getQuota(u));
+      const totalQuota = quotas.reduce((a, b) => a + b, 0);
+
+      document.getElementById('chart-quota-subtitle').textContent =
+        `${state.year}학년도 ${list.length}개교 총 ${totalQuota.toLocaleString()}명`;
+
+      const ctx1 = document.getElementById('quotaChart').getContext('2d');
+      if (quotaChartInstance) quotaChartInstance.destroy();
+      quotaChartInstance = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: '모집인원 (명)',
+            data: quotas,
+            backgroundColor: list.map(u => (state.year === '2028' && u.isNew2028) ? '#10b981' : '#4f46e5'),
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+
+      const noMin = list.filter(u => !u.hasMinScore).length;
+      const hasMin = list.length - noMin;
+      const ctx2 = document.getElementById('minScoreChart').getContext('2d');
+      if (minScoreChartInstance) minScoreChartInstance.destroy();
+      minScoreChartInstance = new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['수능최저 없음', '수능최저 적용'],
+          datasets: [{
+            data: [noMin, hasMin],
+            backgroundColor: ['#0ea5e9', '#f59e0b'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+
+    function renderCodeViewer() {
+      const tpl = CODE_TEMPLATES[state.activeCodeTab];
+      document.getElementById('code-viewer').textContent = tpl.content;
+      document.querySelectorAll('.code-tab').forEach(btn => {
+        const active = btn.dataset.code === state.activeCodeTab;
+        btn.className = active
+          ? 'code-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white'
+          : 'code-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200';
+      });
+    }
+
+    function openDetailModal(univId) {
+      const u = state.universities.find(x => x.id === univId);
+      if (!u) return;
+
+      const isBookmarked = state.bookmarks.includes(u.id);
+      const quota = getQuota(u);
+      document.getElementById('modal-title').textContent = u.name;
+      document.getElementById('modal-badges').innerHTML = `
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${u.timing === '수능 전' ? 'bg-sky-100 text-sky-700' : 'bg-indigo-100 text-indigo-700'}">${escapeHtml(u.timing)}</span>
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">${escapeHtml(u.method)}</span>
+      `;
+
+      document.getElementById('modal-body').innerHTML = `
+        <div class="p-3.5 rounded-xl bg-indigo-50 border border-indigo-100">
+          <div class="text-xs font-bold text-indigo-600 mb-0.5">논술고사 시험 일정</div>
+          <div class="text-base font-extrabold text-indigo-950">${escapeHtml(u.examDateDisplay)}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="text-[11px] text-slate-500 font-semibold">${state.year}학년도 모집인원</div>
+            <div class="text-base font-extrabold text-slate-900 mt-0.5">${quota > 0 ? quota.toLocaleString() + '명' : '요강 확인'}</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="text-[11px] text-slate-500 font-semibold">고사 시간</div>
+            <div class="text-base font-extrabold text-slate-900 mt-0.5">${escapeHtml(u.duration)}</div>
+          </div>
+        </div>
+        <div class="space-y-2.5 text-xs sm:text-sm">
+          <div><span class="font-bold text-slate-800">전형 특이사항:</span> <span class="text-slate-600">${escapeHtml(u.quotaNote)}</span></div>
+          <div><span class="font-bold text-slate-800">수능최저학력기준:</span> <span class="text-slate-600">${escapeHtml(u.minScore)}</span></div>
+          <div><span class="font-bold text-slate-800">출제 문항 구성:</span> <span class="text-slate-600">${escapeHtml(u.format)}</span></div>
+          <div><span class="font-bold text-slate-800">출제 범위:</span> <span class="text-slate-600">${escapeHtml(u.scope)}</span></div>
+          ${u.competition2027 ? `<div><span class="font-bold text-slate-800">2027학년도 경쟁률:</span> <span class="text-indigo-700 font-bold">${escapeHtml(u.competition2027)}</span></div>` : ''}
+          <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
+            <strong>2028학년도 변경 예고:</strong> ${escapeHtml(u.changeNote2028)}
+          </div>
+        </div>
+      `;
+
+      const bmBtn = document.getElementById('modal-bookmark-btn');
+      bmBtn.dataset.modalBmId = u.id;
+      bmBtn.innerHTML = `<i data-lucide="star" class="w-4 h-4 ${isBookmarked ? 'fill-amber-400 text-amber-500' : ''}"></i> ${isBookmarked ? '관심대학 해제' : '관심대학 담기'}`;
+      document.getElementById('modal-official-link').href = u.url || 'https://www.veritas-a.com/news/articleView.html?idxno=616626';
+
+      document.getElementById('detail-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        if (btn.dataset.tab === tabName) {
+          btn.classList.add('tab-active');
+          btn.classList.remove('text-slate-600');
+        } else {
+          btn.classList.remove('tab-active');
+          btn.classList.add('text-slate-600');
+        }
+      });
+      if (tabName === 'stats') renderCharts();
+      if (tabName === 'automation') renderCodeViewer();
+    }
+
+    function renderAll() {
+      // Year buttons styling
+      const b27 = document.getElementById('year-btn-2027');
+      const b28 = document.getElementById('year-btn-2028');
+      if (state.year === '2027') {
+        b27.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-indigo-700 shadow-sm';
+        b28.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-600 hover:text-slate-900';
+      } else {
+        b28.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all bg-white text-emerald-700 shadow-sm';
+        b27.className = 'px-3 py-1.5 text-xs font-bold rounded-md transition-all text-slate-600 hover:text-slate-900';
+      }
+
+      document.getElementById('feed-url-input').value = state.feedUrl || '';
+      renderKPIs();
+      renderBookmarks();
+      renderSchedule();
+      renderNotices();
+      if (state.activeTab === 'stats') renderCharts();
+      renderCodeViewer();
+    }
+
+    function toggleBookmark(univId) {
+      const idx = state.bookmarks.indexOf(univId);
+      if (idx >= 0) {
+        state.bookmarks.splice(idx, 1);
+        showToast('관심대학 목록에서 제거했습니다.');
+      } else {
+        state.bookmarks.push(univId);
+        showToast(state.bookmarks.length > 6
+          ? '관심대학에 추가했습니다. (수시 지원은 최대 6회까지 가능합니다)'
+          : '관심대학에 추가했습니다.');
+      }
+      saveState();
+      renderBookmarks();
+      renderSchedule();
+    }
+
+    function copyTextWithFallback(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showToast('코드를 클립보드에 복사했습니다.')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('코드를 클립보드에 복사했습니다.');
+      } catch (e) {
+        showToast('복사에 실패했습니다. 직접 선택해 복사해 주세요.');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function downloadFile(filename, content, mime) {
+      const blob = new Blob([content], { type: mime || 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // =========================================================================
+    // 6. EVENT LISTENERS
+    // =========================================================================
+    function bindEvents() {
+      // Year switcher
+      document.getElementById('year-btn-2027').addEventListener('click', () => { state.year = '2027'; renderAll(); });
+      document.getElementById('year-btn-2028').addEventListener('click', () => { state.year = '2028'; renderAll(); });
+
+      // Tabs
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+      document.getElementById('open-notices-from-bar').addEventListener('click', () => switchTab('notices'));
+      document.getElementById('ticker-notice-btn').addEventListener('click', () => switchTab('notices'));
+
+      // Filters & Search & Sort & View
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.filter = btn.dataset.filter;
+          document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('filter-active'));
+          btn.classList.add('filter-active');
+          renderSchedule();
+        });
+      });
+
+      document.getElementById('search-input').addEventListener('input', (e) => {
+        state.search = e.target.value;
+        renderSchedule();
+      });
+
+      document.getElementById('sort-select').addEventListener('change', (e) => {
+        state.sort = e.target.value;
+        renderSchedule();
+      });
+
+      document.getElementById('view-timeline-btn').addEventListener('click', () => {
+        state.viewMode = 'timeline';
+        document.getElementById('view-timeline-btn').className = 'px-2.5 py-1.5 rounded-md text-xs font-bold bg-white text-indigo-700 shadow-sm flex items-center gap-1';
+        document.getElementById('view-table-btn').className = 'px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1';
+        renderSchedule();
+      });
+
+      document.getElementById('view-table-btn').addEventListener('click', () => {
+        state.viewMode = 'table';
+        document.getElementById('view-table-btn').className = 'px-2.5 py-1.5 rounded-md text-xs font-bold bg-white text-indigo-700 shadow-sm flex items-center gap-1';
+        document.getElementById('view-timeline-btn').className = 'px-2.5 py-1.5 rounded-md text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1';
+        renderSchedule();
+      });
+
+      // Delegated clicks for timeline, table, bookmarks
+      document.addEventListener('click', (e) => {
+        const detailBtn = e.target.closest('[data-detail]');
+        if (detailBtn) { openDetailModal(detailBtn.dataset.detail); return; }
+
+        const bmBtn = e.target.closest('[data-bookmark]');
+        if (bmBtn) { toggleBookmark(bmBtn.dataset.bookmark); return; }
+
+        const rmBm = e.target.closest('[data-remove-bm]');
+        if (rmBm) { toggleBookmark(rmBm.dataset.removeBm); return; }
+      });
+
+      document.getElementById('btn-clear-bookmarks').addEventListener('click', () => {
+        state.bookmarks = [];
+        saveState();
+        renderBookmarks();
+        renderSchedule();
+        showToast('선택한 관심대학을 초기화했습니다.');
+      });
+
+      // Detail Modal
+      document.getElementById('btn-close-detail').addEventListener('click', () => {
+        document.getElementById('detail-modal').classList.add('hidden');
+      });
+      document.getElementById('modal-bookmark-btn').addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.modalBmId;
+        if (id) {
+          toggleBookmark(id);
+          openDetailModal(id);
+        }
+      });
+
+      // Add University Modal
+      const addModal = document.getElementById('add-modal');
+      document.getElementById('btn-open-add-modal').addEventListener('click', () => addModal.classList.remove('hidden'));
+      document.getElementById('btn-close-add').addEventListener('click', () => addModal.classList.add('hidden'));
+      document.getElementById('btn-cancel-add').addEventListener('click', () => addModal.classList.add('hidden'));
+
+      document.getElementById('add-univ-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const name = fd.get('name').trim();
+        const shortName = name.replace(/대학교$/, '대');
+        const year = fd.get('year');
+        const examDate = fd.get('examDate');
+        const quota = parseInt(fd.get('quota'), 10) || 0;
+        const method = fd.get('method').trim();
+        const minScore = (fd.get('minScore') || '없음').trim();
+        const format = (fd.get('format') || '모집요강 확인').trim();
+        const url = (fd.get('url') || '').trim();
+
+        const timing = examDate < CSAT_DATE_2027 ? '수능 전' : '수능 후';
+        const newUniv = {
+          id: 'custom-' + Date.now(),
+          name,
+          shortName,
+          years: [year],
+          examDate,
+          examDatesAll: [examDate],
+          examDateDisplay: examDate,
+          timing,
+          quota2027: year === '2027' ? quota : 0,
+          quota2028: year === '2028' ? quota : 0,
+          quotaNote: '사용자 직접 등록 대학',
+          method,
+          essay100: method.includes('100%'),
+          hasMinScore: minScore !== '없음' && minScore !== '',
+          minScore,
+          format,
+          duration: '요강 확인',
+          scope: '요강 확인',
+          competition2027: null,
+          isNew2027: year === '2027',
+          isNew2028: year === '2028',
+          changeNote2028: `${year}학년도 신규 추가 등록`,
+          url: url || 'https://www.veritas-a.com/news/articleView.html?idxno=634865'
+        };
+
+        state.universities.push(newUniv);
+        state.notices.unshift({
+          id: 'n-custom-' + Date.now(),
+          date: REFERENCE_TODAY,
+          category: '신규 대학',
+          title: `[신규 대학 추가] ${name} (${year}학년도 약술형 논술 · ${quota}명)`,
+          body: `${name}이(가) ${year}학년도 목록에 추가되었습니다. 시험일: ${examDate} / 전형: ${method} / 수능최저: ${minScore}.`,
+          sourceUrl: url,
+          read: false
+        });
+
+        state.year = year;
+        saveState();
+        e.target.reset();
+        addModal.classList.add('hidden');
+        renderAll();
+        showToast(`${name} 등록 및 공지가 자동 생성되었습니다.`);
+      });
+
+      // Notices Controls
+      document.getElementById('btn-mark-all-read').addEventListener('click', () => {
+        state.notices.forEach(n => { n.read = true; });
+        saveState();
+        renderNotices();
+        showToast('모든 공지를 읽음 처리했습니다.');
+      });
+
+      const noticeModal = document.getElementById('notice-modal');
+      document.getElementById('btn-open-notice-modal').addEventListener('click', () => noticeModal.classList.remove('hidden'));
+      document.getElementById('btn-close-notice').addEventListener('click', () => noticeModal.classList.add('hidden'));
+      document.getElementById('btn-cancel-notice').addEventListener('click', () => noticeModal.classList.add('hidden'));
+
+      document.getElementById('add-notice-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        state.notices.unshift({
+          id: 'n-manual-' + Date.now(),
+          date: REFERENCE_TODAY,
+          category: fd.get('category'),
+          title: fd.get('title').trim(),
+          body: fd.get('body').trim(),
+          sourceUrl: '',
+          read: false
+        });
+        saveState();
+        e.target.reset();
+        noticeModal.classList.add('hidden');
+        renderNotices();
+        showToast('새 공지사항이 게시되었습니다.');
+      });
+
+      // Automation Tab Controls
+      document.querySelectorAll('.code-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.activeCodeTab = btn.dataset.code;
+          renderCodeViewer();
+        });
+      });
+
+      document.getElementById('btn-copy-code').addEventListener('click', () => {
+        copyTextWithFallback(CODE_TEMPLATES[state.activeCodeTab].content);
+      });
+
+      document.getElementById('btn-download-code').addEventListener('click', () => {
+        const tpl = CODE_TEMPLATES[state.activeCodeTab];
+        downloadFile(tpl.filename, tpl.content, 'text/plain;charset=utf-8');
+        showToast(`${tpl.filename} 파일을 다운로드했습니다.`);
+      });
+
+      document.getElementById('btn-export-json').addEventListener('click', () => {
+        const payload = {
+          lastSynced: state.lastSynced,
+          universities: state.universities,
+          notices: state.notices
+        };
+        downloadFile('yaksul_data.json', JSON.stringify(payload, null, 2), 'application/json');
+        showToast('yaksul_data.json 파일을 내보냈습니다.');
+      });
+
+      document.getElementById('input-import-json').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          try {
+            const parsed = JSON.parse(ev.target.result);
+            if (!Array.isArray(parsed.universities)) throw new Error('universities 배열이 없습니다.');
+            state.universities = parsed.universities;
+            if (Array.isArray(parsed.notices)) state.notices = parsed.notices;
+            state.lastSynced = parsed.lastSynced || REFERENCE_TODAY;
+            saveState();
+            renderAll();
+            showToast(`JSON에서 ${state.universities.length}개 대학 데이터를 불러왔습니다.`);
+          } catch (err) {
+            showToast('JSON 형식이 올바르지 않습니다: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      });
+
+      document.getElementById('btn-fetch-feed').addEventListener('click', async () => {
+        const url = document.getElementById('feed-url-input').value.trim();
+        const statusEl = document.getElementById('feed-status-msg');
+        if (!url || !url.startsWith('https://')) {
+          statusEl.textContent = '올바른 HTTPS JSON URL을 입력해 주세요.';
+          statusEl.className = 'text-[11px] text-rose-600 font-semibold';
+          return;
+        }
+        statusEl.textContent = '원격 JSON 피드 동기화 중...';
+        statusEl.className = 'text-[11px] text-indigo-600 font-semibold';
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (!Array.isArray(data.universities)) throw new Error('유효한 yaksul_data.json 형식이 아닙니다.');
+          state.universities = data.universities;
+          if (Array.isArray(data.notices)) state.notices = data.notices;
+          state.feedUrl = url;
+          state.lastSynced = data.lastSynced || REFERENCE_TODAY;
+          saveState();
+          renderAll();
+          statusEl.textContent = `동기화 완료 (${state.universities.length}개 대학 반영됨)`;
+          statusEl.className = 'text-[11px] text-emerald-600 font-semibold';
+          showToast('원격 JSON 피드와 동기화되었습니다.');
+        } catch (err) {
+          statusEl.textContent = `피드 연결 실패 (${err.message}). CORS 허용된 공개 HTTPS JSON URL인지 확인하세요.`;
+          statusEl.className = 'text-[11px] text-rose-600 font-semibold';
+        }
+      });
+
+      document.getElementById('btn-simulate-sync').addEventListener('click', () => {
+        const simId = 'sim-2029-preview';
+        const exists = state.notices.some(n => n.id === simId);
+        if (exists) {
+          showToast('이미 최신 변경사항이 모두 반영되어 있습니다.');
+          return;
+        }
+        state.notices.unshift({
+          id: simId,
+          date: REFERENCE_TODAY,
+          category: '공지',
+          title: '[자동 점검 완료] 2027·2028학년도 16개교 일정·신규 합류 데이터 최신 상태 확인',
+          body: '자동 점검 결과 2027학년도 13개교 확정 일정 및 2028학년도 3개교(가톨릭대·한성대·인하대) 신규 합류 정보가 모두 반영되어 있습니다. 다음 대규모 자동 갱신 시점은 2027년 4월(2029 시행계획) 및 5월(2028 수시모집요강)입니다.',
+          sourceUrl: 'https://www.veritas-a.com/news/articleView.html?idxno=634865',
+          read: false
+        });
+        state.lastSynced = REFERENCE_TODAY.replace(/-/g, '.');
+        saveState();
+        renderAll();
+        showToast('자동 점검 완료! 새 점검 결과가 공지사항에 기록되었습니다.');
+      });
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedState();
+      bindEvents();
+      renderAll();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
