@@ -107,7 +107,7 @@
         </button>
         <button data-tab="automation" type="button" class="nav-tab py-3 px-2 text-xs sm:text-sm text-slate-600 hover:text-slate-900 whitespace-nowrap flex items-center gap-1.5 transition">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-          매년 자동 업데이트 설정
+          데이터 동기화
         </button>
       </nav>
     </div>
@@ -323,96 +323,51 @@
       </div>
     </section>
 
-    <!-- TAB 4: Auto-Update & Automation Pipeline -->
-    <section id="tab-automation" class="tab-panel hidden space-y-6">
-      <!-- Live Feed & Sync Control -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-4">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <i data-lucide="radio" class="w-4 h-4 text-emerald-600"></i>
-                자동 업데이트 피드 연결 & 동기화
-              </h3>
-              <p class="text-xs text-slate-500 mt-1">
-                GitHub Pages 등에 배포된 <code>yaksul_data.json</code> URL을 연결하면 페이지 열람 시 최신 연도·신규 대학·변경 공지를 자동으로 불러옵니다.
-              </p>
-            </div>
+    <!-- TAB 4: Data Sync & 2-Year Retention -->
+    <section id="tab-automation" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <i data-lucide="radio" class="w-4 h-4 text-emerald-600"></i>
+              자동 데이터 동기화 및 2년 보존 관리
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">
+              사이트 접속 시 자동으로 <code>./data/yaksul_data.json</code>의 최신 일정·신규 대학·공지사항을 불러옵니다.
+            </p>
           </div>
-
-          <div class="space-y-2">
-            <label for="feed-url-input" class="block text-xs font-bold text-slate-700">원격 데이터 JSON URL (HTTPS)</label>
-            <div class="flex gap-2">
-              <input id="feed-url-input" type="url" placeholder="https://your-username.github.io/yaksul-tracker/data/yaksul_data.json" class="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <button id="btn-fetch-feed" type="button" class="px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap">
-                피드 동기화
-              </button>
-            </div>
-            <p id="feed-status-msg" class="text-[11px] text-slate-500">현재 내장 검증 데이터(2027·2028학년도)로 실행 중입니다.</p>
-          </div>
-
-          <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-            <button id="btn-simulate-sync" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
-              <i data-lucide="scan-search" class="w-3.5 h-3.5"></i> 신규 대학 자동 감지 테스트
-            </button>
-            <button id="btn-export-json" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> 현재 데이터 JSON 내보내기
-            </button>
-            <label class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> JSON 가져오기
-              <input id="input-import-json" type="file" accept=".json,application/json" class="hidden" />
-            </label>
-          </div>
+          <span id="retention-badge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[11px] font-bold">
+            <i data-lucide="clock" class="w-3.5 h-3.5"></i> 최근 2년 데이터 보존 적용 중
+          </span>
         </div>
 
-        <!-- Annual Auto-Update Schedule Architecture -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2 mb-3">
-            <i data-lucide="workflow" class="w-4 h-4 text-indigo-600"></i>
-            매년 무인 자동 업데이트 동작 구조
-          </h3>
-          <ol class="space-y-2.5 text-xs text-slate-700">
-            <li class="flex items-start gap-2.5">
-              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">1</span>
-              <div><strong>정기 스케줄 실행 (GitHub Actions)</strong>: 매년 4월(시행계획), 5~6월(수시모집요강), 9~12월(고사장·일정 변경) 주간 자동 실행(Cron).</div>
-            </li>
-            <li class="flex items-start gap-2.5">
-              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">2</span>
-              <div><strong>신규 대학 자동 탐색 (Keyword Scanner)</strong>: 대교협 어디가·입시 보도자료·각 대학 입학처 공지에서 <code>"약술형 논술"</code>, <code>"교과논술"</code>, <code>"논술전형 신설"</code> 키워드 감지 시 신규 대학 후보로 자동 편입.</div>
-            </li>
-            <li class="flex items-start gap-2.5">
-              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">3</span>
-              <div><strong>Diff 비교 & 자동 공지 발행</strong>: 직전 <code>yaksul_data.json</code>과 비교해 시험일·모집인원·수능최저·신규 대학이 달라지면 <code>notices</code> 배열에 변경 공지를 자동 추가하고 웹사이트에 즉시 반영.</div>
-            </li>
-            <li class="flex items-start gap-2.5">
-              <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center shrink-0">4</span>
-              <div><strong>무료 호스팅 배포</strong>: GitHub Pages 또는 Vercel에 이 HTML 파일과 <code>data/yaksul_data.json</code>을 올리면 서버 비용 0원으로 매년 자동 갱신.</div>
-            </li>
-          </ol>
+        <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-600 leading-relaxed">
+          <strong class="text-slate-800">데이터 보존 정책:</strong> 현재 연도 기준 <strong>2년 전까지</strong>의 시험 일정과 공지사항만 보존하며, 2년을 초과한 과거 기록은 동기화 시 자동으로 정리됩니다.
         </div>
-      </div>
 
-      <!-- Deployable Code Templates -->
-      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-          <div class="flex items-center gap-2">
-            <button data-code="workflow" type="button" class="code-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
-              .github/workflows/update-yaksul.yml
-            </button>
-            <button data-code="python" type="button" class="code-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200">
-              scripts/sync_yaksul.py
+        <div class="space-y-2">
+          <label for="feed-url-input" class="block text-xs font-bold text-slate-700">데이터 JSON 경로 또는 원격 HTTPS URL</label>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <input id="feed-url-input" type="text" placeholder="./data/yaksul_data.json" class="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            <button id="btn-fetch-feed" type="button" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap">
+              지금 동기화
             </button>
           </div>
-          <div class="flex items-center gap-2">
-            <button id="btn-copy-code" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i> 코드 복사
-            </button>
-            <button id="btn-download-code" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">
-              <i data-lucide="file-down" class="w-3.5 h-3.5"></i> 파일 다운로드
-            </button>
-          </div>
+          <p id="feed-status-msg" class="text-[11px] text-slate-500">접속 시 자동으로 최신 데이터를 확인합니다.</p>
         </div>
-        <pre id="code-viewer" class="code-block p-4 text-xs text-slate-100 bg-slate-900 overflow-x-auto leading-relaxed max-h-96"></pre>
+
+        <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
+          <button id="btn-simulate-sync" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+            <i data-lucide="scan-search" class="w-3.5 h-3.5"></i> 최신 상태 점검
+          </button>
+          <button id="btn-export-json" type="button" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i> 현재 데이터 JSON 내보내기
+          </button>
+          <label class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> JSON 가져오기
+            <input id="input-import-json" type="file" accept=".json,application/json" class="hidden" />
+          </label>
+        </div>
       </div>
     </section>
   </main>
@@ -965,6 +920,127 @@
       }
     ];
 
+
+    // Verified 2025~2027 논술전형 경쟁률 (출처: 베리타스알파 2026·2027 수시 논술 최종경쟁률)
+    const VERIFIED_COMPETITION_HISTORY = {
+      eulji: {
+        note: '',
+        records: [
+          { year: '2026', rate: 17.45, quota: 251, applicants: 4381 },
+          { year: '2027', rate: 19.51, quota: 251, applicants: 4896 }
+        ]
+      },
+      sangmyung: {
+        note: '',
+        records: [
+          { year: '2025', rate: 71.61, quota: 101, applicants: 7233 },
+          { year: '2026', rate: 70.41, quota: 101, applicants: 7111 },
+          { year: '2027', rate: 68.12, quota: 98, applicants: 6676 }
+        ]
+      },
+      seokyeong: {
+        note: '2027학년도 논술 100% 전환',
+        records: [
+          { year: '2026', rate: 13.98, quota: 204, applicants: 2852 },
+          { year: '2027', rate: 23.41, quota: 214, applicants: 5009 }
+        ]
+      },
+      suwon: {
+        note: '',
+        records: [
+          { year: '2026', rate: 17.16, quota: 441, applicants: 7568 },
+          { year: '2027', rate: 20.45, quota: 434, applicants: 8876 }
+        ]
+      },
+      tukorea: {
+        note: '',
+        records: [
+          { year: '2026', rate: 12.18, quota: 280, applicants: 3410 },
+          { year: '2027', rate: 23.88, quota: 200, applicants: 4775 }
+        ]
+      },
+      sahmyook: {
+        note: '2027학년도 모집인원 대폭 확대(154→277명)',
+        records: [
+          { year: '2026', rate: 51.71, quota: 154, applicants: 7963 },
+          { year: '2027', rate: 46.84, quota: 277, applicants: 12976 }
+        ]
+      },
+      koreatech: {
+        note: '',
+        records: [
+          { year: '2026', rate: 17.91, quota: 150, applicants: 2686 },
+          { year: '2027', rate: 28.99, quota: 150, applicants: 4349 }
+        ]
+      },
+      kangnam: {
+        note: '',
+        records: [
+          { year: '2026', rate: 8.53, quota: 359, applicants: 3061 },
+          { year: '2027', rate: 11.02, quota: 309, applicants: 3404 }
+        ]
+      },
+      dongduk: {
+        note: '2027학년도 약술형 첫 전환',
+        records: [
+          { year: '2026', rate: 11.93, quota: 229, applicants: 2733 },
+          { year: '2027', rate: 13.35, quota: 266, applicants: 3552 }
+        ]
+      },
+      shinhan: {
+        note: '',
+        records: [
+          { year: '2026', rate: 15.32, quota: 166, applicants: 2543 },
+          { year: '2027', rate: 17.03, quota: 186, applicants: 3168 }
+        ]
+      },
+      gachon: {
+        note: '2027학년도 한의예·약학 논술 신설',
+        records: [
+          { year: '2026', rate: 41.57, quota: 1009, applicants: 41942 },
+          { year: '2027', rate: 45.20, quota: 1036, applicants: 46828 }
+        ]
+      },
+      hanshin: {
+        note: '',
+        records: [
+          { year: '2026', rate: 5.89, quota: 261, applicants: 1537 },
+          { year: '2027', rate: 7.58, quota: 231, applicants: 1752 }
+        ]
+      },
+      kookmin: {
+        note: '전국 논술 경쟁률 2위 (2년 연속)',
+        records: [
+          { year: '2026', rate: 128.47, quota: 226, applicants: 29034 },
+          { year: '2027', rate: 131.57, quota: 205, applicants: 26972 }
+        ]
+      },
+      catholic: {
+        note: '기존 논술전형 기준 (2028 약술형 전환)',
+        records: [
+          { year: '2026', rate: 43.60, quota: 177, applicants: 7717 },
+          { year: '2027', rate: 54.66, quota: 176, applicants: 9620 }
+        ]
+      },
+      hansung: {
+        note: '2028학년도 논술전형 신규 신설',
+        records: []
+      },
+      inha: {
+        note: '기존 논술전형 기준 (2028 논·서술형 전환 예고)',
+        records: [
+          { year: '2026', rate: 29.24, quota: 457, applicants: 13361 },
+          { year: '2027', rate: 36.83, quota: 457, applicants: 16830 }
+        ]
+      }
+    };
+
+    INITIAL_UNIVERSITIES.forEach(u => {
+      const hist = VERIFIED_COMPETITION_HISTORY[u.id];
+      u.competitionHistory = hist ? hist.records : [];
+      u.competitionNote = hist ? hist.note : '';
+    });
+
     const INITIAL_NOTICES = [
       {
         id: 'n-20261110',
@@ -1005,162 +1081,40 @@
     ];
 
     // =========================================================================
-    // 2. DEPLOYABLE AUTO-UPDATE CODE TEMPLATES (GitHub Actions + Python)
+    // 2. DATA RETENTION POLICY (현재 기준 2년 전까지 보존)
     // =========================================================================
-    const CODE_TEMPLATES = {
-      workflow: {
-        filename: 'update-yaksul.yml',
-        content: `name: Annual Yaksul Schedule Auto-Updater
+    const DEFAULT_FEED_URL = './data/yaksul_data.json';
 
-on:
-  schedule:
-    # 매년 4~6월(시행계획·수시요강 시즌) 및 9~12월(고사 일정 변경) 매주 월요일 09:00 KST (00:00 UTC)
-    - cron: '0 0 * * 1'
-  workflow_dispatch: # 수동 즉시 실행 가능
+    function getRetentionCutoff() {
+      const now = new Date();
+      const ref = new Date(REFERENCE_TODAY + 'T00:00:00');
+      const baseDate = now > ref ? now : ref;
+      const minYear = baseDate.getFullYear() - 2;
+      const cutoffDate = new Date(baseDate);
+      cutoffDate.setFullYear(minYear);
+      const y = cutoffDate.getFullYear();
+      const m = String(cutoffDate.getMonth() + 1).padStart(2, '0');
+      const d = String(cutoffDate.getDate()).padStart(2, '0');
+      return { minYear, cutoffDateStr: `${y}-${m}-${d}`, baseYear: baseDate.getFullYear() };
+    }
 
-permissions:
-  contents: write
+    function applyTwoYearRetention() {
+      const { minYear, cutoffDateStr } = getRetentionCutoff();
 
-jobs:
-  sync-yaksul-data:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: pip install requests beautifulsoup4 feedparser
-
-      - name: Run Yaksul schedule & new university detector
-        run: python scripts/sync_yaksul.py
-
-      - name: Commit & Push updated JSON + auto notices
-        run: |
-          git config user.name "Yaksul-AutoBot"
-          git config user.email "bot@yaksul-tracker.local"
-          git add data/yaksul_data.json
-          git diff --staged --quiet || git commit -m "chore: auto-update yaksul schedule & notices ($(date +%Y-%m-%d))"
-          git push`
-      },
-      python: {
-        filename: 'sync_yaksul.py',
-        content: `#!/usr/bin/env python3
-"""
-약술형 논술 일정 자동 수집·신규 대학 감지·변경사항 공지 자동 발행 스크립트
-- 기존 data/yaksul_data.json을 읽고, 공개 입시 RSS/공지 페이지를 스캔합니다.
-- 새로운 약술형 논술 대학 키워드 또는 일정/인원 변경을 감지하면
-  자동으로 universities 목록을 갱신하고 notices에 변경 공지를 추가합니다.
-"""
-import json
-import re
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-import requests
-from bs4 import BeautifulSoup
-
-DATA_PATH = Path("data/yaksul_data.json")
-KST = timezone(timedelta(hours=9))
-TODAY = datetime.now(KST).strftime("%Y-%m-%d")
-
-# 모니터링할 입시 뉴스/공지 소스 (필요에 따라 대학 입학처 RSS/게시판 추가)
-MONITOR_FEEDS = [
-    {"name": "베리타스알파 대입", "url": "https://www.veritas-a.com/rss/allArticle.xml"},
-]
-
-KEYWORDS = ["약술형 논술", "약술형", "교과논술", "논술전형 신설"]
-UNIV_PATTERN = re.compile(r"([가-힣]{2,6}대(?:학교)?)")
-
-
-def load_data():
-    if not DATA_PATH.exists():
-        return {"lastSynced": TODAY, "universities": [], "notices": []}
-    return json.loads(DATA_PATH.read_text(encoding="utf-8"))
-
-
-def scan_for_updates(data):
-    existing_names = {u["shortName"] for u in data["universities"]}
-    existing_notice_titles = {n["title"] for n in data["notices"]}
-    new_hits = []
-
-    for feed in MONITOR_FEEDS:
-        try:
-            resp = requests.get(feed["url"], timeout=15)
-            resp.raise_for_status()
-            soup = BeautifulSoup(resp.content, "xml")
-            for item in soup.find_all("item")[:40]:
-                title = (item.title.text or "").strip()
-                link = (item.link.text or "").strip()
-                if any(kw in title for kw in KEYWORDS):
-                    detected_univs = set(UNIV_PATTERN.findall(title))
-                    for univ in detected_univs:
-                        short = univ.replace("대학교", "대")
-                        if short not in existing_names and len(short) >= 3:
-                            new_hits.append((short, title, link))
-        except Exception as err:
-            print(f"[WARN] Feed fetch failed ({feed['name']}): {err}")
-
-    # 신규 감지 대학 자동 추가 및 공지 생성
-    next_year = str(datetime.now(KST).year + 2)
-    for short, title, link in new_hits:
-        notice_title = f"[자동 감지] {short} 약술형 논술 관련 신규 소식"
-        if notice_title in existing_notice_titles:
-            continue
-        data["universities"].append({
-            "id": f"auto-{short}-{TODAY}",
-            "name": f"{short}학교" if not short.endswith("학교") else short,
-            "shortName": short,
-            "years": [next_year],
-            "examDate": f"{int(next_year)-1}-11-25",
-            "examDatesAll": [],
-            "examDateDisplay": "수시모집요강 확정 대기 (자동 감지됨)",
-            "timing": "수능 후",
-            "quota2027": 0,
-            "quota2028": 0,
-            "quotaNote": "자동 감지된 후보 대학 — 공식 입학처 요강 확인 필요",
-            "method": "요강 확인 필요",
-            "essay100": False,
-            "hasMinScore": False,
-            "minScore": "요강 확인 필요",
-            "format": "요강 확인 필요",
-            "duration": "요강 확인 필요",
-            "scope": "요강 확인 필요",
-            "competition2027": None,
-            "isNew2027": False,
-            "isNew2028": True,
-            "changeNote2028": f"자동 수집 출처: {title}",
-            "url": link
+      // 1) 대학 목록: 현재 연도 - 2년 이전 학년도만 남은 데이터 정리
+      state.universities = state.universities
+        .map(u => {
+          const validYears = (u.years || []).filter(yr => parseInt(yr, 10) >= minYear);
+          return { ...u, years: validYears };
         })
-        data["notices"].insert(0, {
-            "id": f"auto-{TODAY}-{short}",
-            "date": TODAY,
-            "category": "신규 대학",
-            "title": notice_title,
-            "body": f"자동 모니터링에서 '{title}' 기사가 감지되어 {short} 항목이 후보 목록에 추가되었습니다.",
-            "sourceUrl": link,
-            "read": False
-        })
-        existing_names.add(short)
-        existing_notice_titles.add(notice_title)
+        .filter(u => u.years.length > 0);
 
-    # 시험 날짜 순 재정렬
-    data["universities"].sort(key=lambda u: u.get("examDate", "9999-12-31"))
-    data["lastSynced"] = TODAY
-    return data
-
-
-if __name__ == "__main__":
-    DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
-    current = load_data()
-    updated = scan_for_updates(current)
-    DATA_PATH.write_text(json.dumps(updated, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[OK] Synced {len(updated['universities'])} universities on {TODAY}")`
-      }
-    };
+      // 2) 공지사항: 2년 전 날짜 이후 기록만 보존
+      state.notices = state.notices.filter(n => {
+        if (!n.date || !/^\d{4}-\d{2}-\d{2}$/.test(n.date)) return true;
+        return n.date >= cutoffDateStr;
+      });
+    }
 
     // =========================================================================
     // 3. STATE MANAGEMENT
@@ -1177,9 +1131,8 @@ if __name__ == "__main__":
       bookmarks: ['gachon', 'kookmin', 'dongduk'],
       universities: JSON.parse(JSON.stringify(INITIAL_UNIVERSITIES)),
       notices: JSON.parse(JSON.stringify(INITIAL_NOTICES)),
-      activeCodeTab: 'workflow',
       lastSynced: '2026.11.26',
-      feedUrl: ''
+      feedUrl: DEFAULT_FEED_URL
     };
 
     function loadSavedState() {
@@ -1188,7 +1141,16 @@ if __name__ == "__main__":
         if (!raw) return;
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.universities) && parsed.universities.length > 0) {
-          state.universities = parsed.universities;
+          state.universities = parsed.universities.map(u => {
+            const hist = VERIFIED_COMPETITION_HISTORY[u.id];
+            return {
+              ...u,
+              competitionHistory: (Array.isArray(u.competitionHistory) && u.competitionHistory.length > 0)
+                ? u.competitionHistory
+                : (hist ? hist.records : []),
+              competitionNote: u.competitionNote || (hist ? hist.note : '')
+            };
+          });
         }
         if (Array.isArray(parsed.notices) && parsed.notices.length > 0) {
           state.notices = parsed.notices;
@@ -1300,6 +1262,7 @@ if __name__ == "__main__":
     // =========================================================================
     let quotaChartInstance = null;
     let minScoreChartInstance = null;
+    let modalCompChartInstance = null;
 
     function renderKPIs() {
       const list = getYearUniversities();
@@ -1629,23 +1592,74 @@ if __name__ == "__main__":
       });
     }
 
-    function renderCodeViewer() {
-      const tpl = CODE_TEMPLATES[state.activeCodeTab];
-      document.getElementById('code-viewer').textContent = tpl.content;
-      document.querySelectorAll('.code-tab').forEach(btn => {
-        const active = btn.dataset.code === state.activeCodeTab;
-        btn.className = active
-          ? 'code-tab px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white'
-          : 'code-tab px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200';
-      });
-    }
-
     function openDetailModal(univId) {
       const u = state.universities.find(x => x.id === univId);
       if (!u) return;
 
       const isBookmarked = state.bookmarks.includes(u.id);
       const quota = getQuota(u);
+      const hist = (Array.isArray(u.competitionHistory) && u.competitionHistory.length > 0)
+        ? u.competitionHistory
+        : ((VERIFIED_COMPETITION_HISTORY[u.id] && VERIFIED_COMPETITION_HISTORY[u.id].records) || []);
+      const compNote = u.competitionNote || (VERIFIED_COMPETITION_HISTORY[u.id] ? VERIFIED_COMPETITION_HISTORY[u.id].note : '');
+
+      let compSectionHtml = '';
+      if (hist.length > 0) {
+        const latest = hist[hist.length - 1];
+        const prev = hist.length >= 2 ? hist[hist.length - 2] : null;
+        let diffBadge = '';
+        if (prev && prev.rate > 0) {
+          const diff = latest.rate - prev.rate;
+          const pct = ((diff / prev.rate) * 100).toFixed(1);
+          const isUp = diff > 0;
+          const isFlat = Math.abs(diff) < 0.005;
+          const badgeClass = isFlat
+            ? 'bg-slate-100 text-slate-600'
+            : (isUp ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700');
+          const arrow = isFlat ? '변동 없음' : (isUp ? `▲ +${diff.toFixed(2)} (+${pct}%)` : `▼ ${diff.toFixed(2)} (${pct}%)`);
+          diffBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${badgeClass}">전년 대비 ${arrow}</span>`;
+        }
+
+        const recordCards = hist.map((r, idx) => {
+          const isLatest = idx === hist.length - 1;
+          return `
+            <div class="p-2.5 rounded-lg border ${isLatest ? 'bg-indigo-50/70 border-indigo-200' : 'bg-white border-slate-200'}">
+              <div class="text-[11px] font-semibold ${isLatest ? 'text-indigo-700' : 'text-slate-500'}">${escapeHtml(r.year)}학년도${isLatest ? ' (최신)' : ''}</div>
+              <div class="text-base font-extrabold ${isLatest ? 'text-indigo-900' : 'text-slate-800'} mt-0.5">${Number(r.rate).toFixed(2)} : 1</div>
+              <div class="text-[10px] text-slate-500 mt-0.5">모집 ${Number(r.quota).toLocaleString()}명 · 지원 ${Number(r.applicants).toLocaleString()}명</div>
+            </div>`;
+        }).join('');
+
+        compSectionHtml = `
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-600"></i>
+                  연도별 논술 경쟁률 비교
+                </div>
+                ${compNote ? `<div class="text-[11px] text-slate-500 mt-0.5">${escapeHtml(compNote)}</div>` : ''}
+              </div>
+              ${diffBadge}
+            </div>
+            <div class="grid grid-cols-2 ${hist.length >= 3 ? 'sm:grid-cols-3' : ''} gap-2">
+              ${recordCards}
+            </div>
+            <div class="relative h-44 bg-white rounded-lg border border-slate-200 p-2.5">
+              <canvas id="modal-comp-chart"></canvas>
+            </div>
+            <div class="text-[10px] text-slate-400 text-right">
+              출처: <a href="https://www.veritas-a.com/news/articleView.html?idxno=627780" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600">베리타스알파 2027</a> ·
+              <a href="https://www.veritas-a.com/news/articleView.html?idxno=572329" target="_blank" rel="noopener noreferrer" class="underline hover:text-indigo-600">2026 수시 논술 최종경쟁률</a>
+            </div>
+          </div>`;
+      } else {
+        compSectionHtml = `
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500">
+            <strong class="text-slate-700">연도별 논술 경쟁률:</strong> ${escapeHtml(compNote || '이전 연도 논술 경쟁률 데이터가 아직 없습니다.')}
+          </div>`;
+      }
+
       document.getElementById('modal-title').textContent = u.name;
       document.getElementById('modal-badges').innerHTML = `
         <span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${u.timing === '수능 전' ? 'bg-sky-100 text-sky-700' : 'bg-indigo-100 text-indigo-700'}">${escapeHtml(u.timing)}</span>
@@ -1667,12 +1681,12 @@ if __name__ == "__main__":
             <div class="text-base font-extrabold text-slate-900 mt-0.5">${escapeHtml(u.duration)}</div>
           </div>
         </div>
+        ${compSectionHtml}
         <div class="space-y-2.5 text-xs sm:text-sm">
           <div><span class="font-bold text-slate-800">전형 특이사항:</span> <span class="text-slate-600">${escapeHtml(u.quotaNote)}</span></div>
           <div><span class="font-bold text-slate-800">수능최저학력기준:</span> <span class="text-slate-600">${escapeHtml(u.minScore)}</span></div>
           <div><span class="font-bold text-slate-800">출제 문항 구성:</span> <span class="text-slate-600">${escapeHtml(u.format)}</span></div>
           <div><span class="font-bold text-slate-800">출제 범위:</span> <span class="text-slate-600">${escapeHtml(u.scope)}</span></div>
-          ${u.competition2027 ? `<div><span class="font-bold text-slate-800">2027학년도 경쟁률:</span> <span class="text-indigo-700 font-bold">${escapeHtml(u.competition2027)}</span></div>` : ''}
           <div class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs">
             <strong>2028학년도 변경 예고:</strong> ${escapeHtml(u.changeNote2028)}
           </div>
@@ -1686,6 +1700,60 @@ if __name__ == "__main__":
 
       document.getElementById('detail-modal').classList.remove('hidden');
       lucide.createIcons();
+
+      // Render Bar Chart if competition history exists
+      if (modalCompChartInstance) {
+        modalCompChartInstance.destroy();
+        modalCompChartInstance = null;
+      }
+      if (hist.length > 0) {
+        const canvas = document.getElementById('modal-comp-chart');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          modalCompChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: hist.map(r => `${r.year}학년도`),
+              datasets: [{
+                label: '경쟁률 (:1)',
+                data: hist.map(r => r.rate),
+                backgroundColor: hist.map((_, idx) => idx === hist.length - 1 ? '#4f46e5' : '#94a3b8'),
+                borderRadius: 6,
+                maxBarThickness: 56
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  callbacks: {
+                    label: (context) => {
+                      const rec = hist[context.dataIndex];
+                      return ` ${Number(rec.rate).toFixed(2)} : 1 (모집 ${rec.quota.toLocaleString()}명 / 지원 ${rec.applicants.toLocaleString()}명)`;
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: '#f1f5f9' },
+                  ticks: {
+                    font: { size: 11 },
+                    callback: (v) => `${v}:1`
+                  }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { font: { size: 11, weight: 'bold' } }
+                }
+              }
+            }
+          });
+        }
+      }
     }
 
     function switchTab(tabName) {
@@ -1702,7 +1770,6 @@ if __name__ == "__main__":
         }
       });
       if (tabName === 'stats') renderCharts();
-      if (tabName === 'automation') renderCodeViewer();
     }
 
     function renderAll() {
@@ -1723,7 +1790,6 @@ if __name__ == "__main__":
       renderSchedule();
       renderNotices();
       if (state.activeTab === 'stats') renderCharts();
-      renderCodeViewer();
     }
 
     function toggleBookmark(univId) {
@@ -1740,30 +1806,6 @@ if __name__ == "__main__":
       saveState();
       renderBookmarks();
       renderSchedule();
-    }
-
-    function copyTextWithFallback(text) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => showToast('코드를 클립보드에 복사했습니다.')).catch(() => fallbackCopy(text));
-      } else {
-        fallbackCopy(text);
-      }
-    }
-
-    function fallbackCopy(text) {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand('copy');
-        showToast('코드를 클립보드에 복사했습니다.');
-      } catch (e) {
-        showToast('복사에 실패했습니다. 직접 선택해 복사해 주세요.');
-      }
-      document.body.removeChild(ta);
     }
 
     function downloadFile(filename, content, mime) {
@@ -1956,32 +1998,16 @@ if __name__ == "__main__":
         showToast('새 공지사항이 게시되었습니다.');
       });
 
-      // Automation Tab Controls
-      document.querySelectorAll('.code-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-          state.activeCodeTab = btn.dataset.code;
-          renderCodeViewer();
-        });
-      });
-
-      document.getElementById('btn-copy-code').addEventListener('click', () => {
-        copyTextWithFallback(CODE_TEMPLATES[state.activeCodeTab].content);
-      });
-
-      document.getElementById('btn-download-code').addEventListener('click', () => {
-        const tpl = CODE_TEMPLATES[state.activeCodeTab];
-        downloadFile(tpl.filename, tpl.content, 'text/plain;charset=utf-8');
-        showToast(`${tpl.filename} 파일을 다운로드했습니다.`);
-      });
-
+      // Data Sync Tab Controls
       document.getElementById('btn-export-json').addEventListener('click', () => {
+        applyTwoYearRetention();
         const payload = {
           lastSynced: state.lastSynced,
           universities: state.universities,
           notices: state.notices
         };
         downloadFile('yaksul_data.json', JSON.stringify(payload, null, 2), 'application/json');
-        showToast('yaksul_data.json 파일을 내보냈습니다.');
+        showToast('최근 2년 기준 yaksul_data.json 파일을 내보냈습니다.');
       });
 
       document.getElementById('input-import-json').addEventListener('change', (e) => {
@@ -1995,6 +2021,7 @@ if __name__ == "__main__":
             state.universities = parsed.universities;
             if (Array.isArray(parsed.notices)) state.notices = parsed.notices;
             state.lastSynced = parsed.lastSynced || REFERENCE_TODAY;
+            applyTwoYearRetention();
             saveState();
             renderAll();
             showToast(`JSON에서 ${state.universities.length}개 대학 데이터를 불러왔습니다.`);
@@ -2006,34 +2033,9 @@ if __name__ == "__main__":
         e.target.value = '';
       });
 
-      document.getElementById('btn-fetch-feed').addEventListener('click', async () => {
-        const url = document.getElementById('feed-url-input').value.trim();
-        const statusEl = document.getElementById('feed-status-msg');
-        if (!url || !url.startsWith('https://')) {
-          statusEl.textContent = '올바른 HTTPS JSON URL을 입력해 주세요.';
-          statusEl.className = 'text-[11px] text-rose-600 font-semibold';
-          return;
-        }
-        statusEl.textContent = '원격 JSON 피드 동기화 중...';
-        statusEl.className = 'text-[11px] text-indigo-600 font-semibold';
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (!Array.isArray(data.universities)) throw new Error('유효한 yaksul_data.json 형식이 아닙니다.');
-          state.universities = data.universities;
-          if (Array.isArray(data.notices)) state.notices = data.notices;
-          state.feedUrl = url;
-          state.lastSynced = data.lastSynced || REFERENCE_TODAY;
-          saveState();
-          renderAll();
-          statusEl.textContent = `동기화 완료 (${state.universities.length}개 대학 반영됨)`;
-          statusEl.className = 'text-[11px] text-emerald-600 font-semibold';
-          showToast('원격 JSON 피드와 동기화되었습니다.');
-        } catch (err) {
-          statusEl.textContent = `피드 연결 실패 (${err.message}). CORS 허용된 공개 HTTPS JSON URL인지 확인하세요.`;
-          statusEl.className = 'text-[11px] text-rose-600 font-semibold';
-        }
+      document.getElementById('btn-fetch-feed').addEventListener('click', () => {
+        const url = document.getElementById('feed-url-input').value.trim() || DEFAULT_FEED_URL;
+        syncFromFeed(url, false);
       });
 
       document.getElementById('btn-simulate-sync').addEventListener('click', () => {
@@ -2059,12 +2061,79 @@ if __name__ == "__main__":
       });
     }
 
+    async function syncFromFeed(url, isAuto) {
+      const statusEl = document.getElementById('feed-status-msg');
+      const isRelative = url.startsWith('./') || url.startsWith('/');
+      const isHttps = url.startsWith('https://');
+      if (!isRelative && !isHttps) {
+        if (!isAuto && statusEl) {
+          statusEl.textContent = '올바른 상대 경로(./data/yaksul_data.json) 또는 HTTPS URL을 입력해 주세요.';
+          statusEl.className = 'text-[11px] text-rose-600 font-semibold';
+        }
+        return;
+      }
+
+      if (!isAuto && statusEl) {
+        statusEl.textContent = '최신 데이터 동기화 중...';
+        statusEl.className = 'text-[11px] text-indigo-600 font-semibold';
+      }
+
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!Array.isArray(data.universities)) throw new Error('유효한 yaksul_data.json 형식이 아닙니다.');
+        state.universities = data.universities.map(u => {
+          const hist = VERIFIED_COMPETITION_HISTORY[u.id];
+          return {
+            ...u,
+            competitionHistory: (Array.isArray(u.competitionHistory) && u.competitionHistory.length > 0)
+              ? u.competitionHistory
+              : (hist ? hist.records : []),
+            competitionNote: u.competitionNote || (hist ? hist.note : '')
+          };
+        });
+        if (Array.isArray(data.notices)) state.notices = data.notices;
+        state.feedUrl = url;
+        state.lastSynced = data.lastSynced || REFERENCE_TODAY;
+        applyTwoYearRetention();
+        saveState();
+        renderAll();
+        if (statusEl) {
+          statusEl.textContent = `자동 동기화 완료 (${state.universities.length}개 대학 · 최근 2년 보존 적용)`;
+          statusEl.className = 'text-[11px] text-emerald-600 font-semibold';
+        }
+        if (!isAuto) showToast('최신 JSON 데이터와 동기화되었습니다.');
+      } catch (err) {
+        if (isAuto) {
+          if (statusEl) {
+            statusEl.textContent = '내장 검증 데이터로 실행 중입니다. (배포 사이트에서는 ./data/yaksul_data.json 자동 로드)';
+            statusEl.className = 'text-[11px] text-slate-500';
+          }
+        } else if (statusEl) {
+          statusEl.textContent = `동기화 실패 (${err.message}). 배포된 사이트 경로 또는 공개 HTTPS URL인지 확인하세요.`;
+          statusEl.className = 'text-[11px] text-rose-600 font-semibold';
+        }
+      }
+    }
+
     // Init
     window.addEventListener('DOMContentLoaded', () => {
       loadSavedState();
+      applyTwoYearRetention();
+      const { minYear, baseYear } = getRetentionCutoff();
+      const retBadge = document.getElementById('retention-badge');
+      if (retBadge) {
+        retBadge.innerHTML = `<i data-lucide="clock" class="w-3.5 h-3.5"></i> ${minYear}~${baseYear + 2}학년도 보존 (최근 2년)`;
+      }
       bindEvents();
       renderAll();
       lucide.createIcons();
+
+      // GitHub Pages 등 HTTPS 배포 환경에서 접속 시 자동으로 최신 JSON 로드
+      if (window.location.protocol === 'https:') {
+        syncFromFeed(state.feedUrl || DEFAULT_FEED_URL, true);
+      }
     });
   </script>
 </body>
